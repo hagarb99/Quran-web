@@ -236,21 +236,9 @@
                                             {% endif %}
                                         </td>
                                         <td class="text-end">
-                                            <div class="btn-group btn-group-sm">
-                                                <a href="{% url 'halaqat:student_progress' halaqa.id item.user.id %}" class="btn btn-outline-primary" title="عرض جدول متابعة الطالب">
-                                                    <i class="bi bi-journal-bookmark me-1"></i> المتابعة
-                                                </a>
-                                                {% if can_record_attendance %}
-                                                    <a href="{% url 'attendance:record' session.id item.user.id %}" class="btn btn-outline-success" title="رصد أو تعديل الحضور">
-                                                        <i class="bi bi-calendar-check me-1"></i> حضور
-                                                    </a>
-                                                {% endif %}
-                                                {% if can_record_recitation %}
-                                                    <a href="{% url 'recitations:record' session.id item.user.id %}" class="btn btn-gold-custom" title="تدوين أو تعديل التسميع">
-                                                        <i class="bi bi-journal-text me-1"></i> تسميع
-                                                    </a>
-                                                {% endif %}
-                                            </div>
+                                            <a href="{% url 'halaqat:student_progress' halaqa.id item.user.id %}" class="btn btn-sm btn-primary-custom" title="فتح دفتر التسميع والمتابعة للطالب">
+                                                <i class="bi bi-journal-bookmark-fill me-1"></i> دفتر التسميع والمتابعة
+                                            </a>
                                         </td>
                                     </tr>
                                 {% endfor %}
