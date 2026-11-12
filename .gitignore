@@ -1,14 +1,129 @@
-venv/
-*.pyc
-__pycache__/
-*.swp
-*.swo
-.DS_Store
+# ==========================================
+# Environments and Secrets (CRITICAL)
+# ==========================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+secrets.json
+
+# ==========================================
+# Databases & SQLite
+# ==========================================
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-shm
+*.sqlite3-wal
+*.db
+*.db-journal
 db.sqlite3
 db.sqlite3-journal
-.env
-media/
-staticfiles/
-.vscode/
-.idea/
+*.sql
+*.dump
 
+# ==========================================
+# User Uploaded Media Files
+# ==========================================
+media/*
+!media/.gitkeep
+!media/avatars/
+media/avatars/*
+!media/avatars/.gitkeep
+
+# ==========================================
+# Static Files Cache / Collected Static
+# ==========================================
+staticfiles/
+static_root/
+
+# ==========================================
+# Python Bytecode and Caches
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==========================================
+# Virtual Environments
+# ==========================================
+venv/
+env/
+ENV/
+.venv/
+env.bak/
+venv.bak/
+virtualenv/
+
+# ==========================================
+# Testing, Coverage and Profiling
+# ==========================================
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+htmlcov/
+
+# ==========================================
+# Logs
+# ==========================================
+*.log
+logs/
+
+# ==========================================
+# IDEs and Code Editors
+# ==========================================
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# ==========================================
+# Operating System Artifacts
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ==========================================
+# Temporary Files and Backups
+# ==========================================
+*.bak
+*.tmp
+*.temp
+scratch/
