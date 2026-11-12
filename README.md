@@ -253,3 +253,4 @@ application = get_wsgi_application()
      tar -czf ~/backups/media_$(date +\%Y\%m\%d).tar.gz -C ~/quran-app media
      ```
 3. **الأمان**: لا تقم مطلقاً بنشر ملف `.env` أو قاعدة البيانات الحية `db.sqlite3` على المستودع العام في GitHub (تم إدراجها بالفعل في ملف `.gitignore`).
+

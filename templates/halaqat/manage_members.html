@@ -173,6 +173,11 @@
                                         </td>
                                         <td class="small">{{ m.user.phone }}</td>
                                         <td class="text-end">
+                                            {% if m.role == 'STUDENT' %}
+                                                <a href="{% url 'halaqat:student_progress' halaqa.id m.user.id %}" class="btn btn-sm btn-outline-success me-1" title="جدول متابعة الطالب القرآني">
+                                                    <i class="bi bi-journal-bookmark me-1"></i> جدول المتابعة
+                                                </a>
+                                            {% endif %}
                                             {% if m.role != 'OWNER' %}
                                                 <div class="btn-group btn-group-sm">
                                                     <a href="{% url 'halaqat:update_member_role' halaqa.id m.id %}" class="btn btn-outline-secondary" title="تعديل الصلاحيات">

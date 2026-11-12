@@ -218,8 +218,13 @@
                                         <div class="text-muted" style="font-size: 0.75rem;">{{ m.get_role_display }}</div>
                                     </div>
                                 </div>
+                                {% if m.role == 'STUDENT' %}
+                                    <a href="{% url 'halaqat:student_progress' halaqa.id m.user.id %}" class="btn btn-sm btn-outline-success py-0 px-2 small" title="جدول متابعة الطالب">
+                                        <i class="bi bi-journal-bookmark me-1"></i> المتابعة
+                                    </a>
+                                {% endif %}
                                 {% if user != m.user and user.is_authenticated %}
-                                    <a href="{% url 'chat:start_direct' m.user.id %}" class="btn btn-sm btn-light border" title="محادثة خاصة">
+                                    <a href="{% url 'chat:start_direct' m.user.id %}" class="btn btn-sm btn-light border py-0 px-2" title="محادثة خاصة">
                                         <i class="bi bi-chat text-muted"></i>
                                     </a>
                                 {% endif %}

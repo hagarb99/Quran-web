@@ -83,7 +83,12 @@ def create_halaqa_view(request):
     """
     Creates a new Halaqa and registers the creator as OWNER member,
     along with creating the linked group chat conversation.
+    Rule: Students cannot create halaqat.
     """
+    if request.user.role == User.ROLE_STUDENT and not request.user.is_platform_admin:
+        messages.error(request, "عذراً، خاصية إنشاء الحلقات مخصصة للمعلمين ومشرفي المنصة فقط.")
+        return redirect('halaqat:my_halaqat')
+
     if request.method == 'POST':
         form = HalaqaForm(request.POST)
         if form.is_valid():
@@ -400,7 +405,152 @@ def handle_join_request_view(request, pk, req_id, action):
     return redirect('halaqat:manage_members', pk=pk)
 
 
-# Schedule Views
+from django.db import transaction
+from attendance.models import Attendance
+from recitations.models import Recitation
+from halaqa_sessions.models import Session
+
+
+@login_required
+def student_progress_sheet_view(request, pk, student_id):
+    """
+    Displays the comprehensive follow-up sheet (جدول المتابعة القرآني) for a student in a specific Halaqa.
+    Includes history of new memorization, near revision, far revision, performance ratings, and next assignments.
+    Allows authorized teachers to log or update progress directly.
+    """
+    halaqa = get_object_or_404(Halaqa, pk=pk)
+    student = get_object_or_404(User, pk=student_id)
+
+    # Check permission
+    is_self = (request.user.id == student.id)
+    is_owner = halaqa.is_owner(request.user)
+    is_admin = request.user.is_platform_admin
+    can_record_rec = halaqa.can_record_recitation(request.user)
+    can_record_att = halaqa.can_record_attendance(request.user)
+    can_manage = is_owner or is_admin or can_record_rec or can_record_att
+
+    if not (is_self or can_manage):
+        messages.error(request, "ليست لديك صلاحية عرض جدول متابعة هذا الطالب.")
+        return redirect('halaqat:detail', pk=pk)
+
+    # Handle quick progress logging by teacher/assistant
+    if request.method == 'POST' and can_manage:
+        session_id = request.POST.get('session_id')
+        session = get_object_or_404(Session, pk=session_id, halaqa=halaqa)
+        
+        att_status = request.POST.get('attendance_status')
+        att_notes = request.POST.get('attendance_notes', '').strip()
+
+        new_mem = request.POST.get('new_memorization', '').strip()
+        near_rev = request.POST.get('near_revision', '').strip()
+        far_rev = request.POST.get('far_revision', '').strip()
+        rating = request.POST.get('rating')
+        notes = request.POST.get('teacher_notes', '').strip()
+        next_assign = request.POST.get('next_assignment', '').strip()
+
+        with transaction.atomic():
+            # 1. Update or create attendance
+            if att_status:
+                att_obj = Attendance.objects.filter(session=session, student=student).first()
+                if att_obj:
+                    att_obj.status = att_status
+                    att_obj.notes = att_notes
+                    att_obj.updated_by = request.user
+                    att_obj.save()
+                else:
+                    Attendance.objects.create(
+                        session=session,
+                        student=student,
+                        status=att_status,
+                        notes=att_notes,
+                        created_by=request.user
+                    )
+
+            # 2. Update or create recitation if rating is provided
+            if rating and rating in [r[0] for r in Recitation.RATING_CHOICES]:
+                rec_obj = Recitation.objects.filter(session=session, student=student).first()
+                if rec_obj:
+                    rec_obj.new_memorization = new_mem
+                    rec_obj.near_revision = near_rev
+                    rec_obj.far_revision = far_rev
+                    rec_obj.rating = rating
+                    rec_obj.teacher_notes = notes
+                    rec_obj.next_assignment = next_assign
+                    rec_obj.updated_by = request.user
+                    rec_obj.save()
+                else:
+                    Recitation.objects.create(
+                        session=session,
+                        student=student,
+                        new_memorization=new_mem,
+                        near_revision=near_rev,
+                        far_revision=far_rev,
+                        rating=rating,
+                        teacher_notes=notes,
+                        next_assignment=next_assign,
+                        created_by=request.user
+                    )
+
+        messages.success(request, f"تم حفظ وتحديث بيانات المتابعة والتسميع للطالب {student.display_name} بنجاح.")
+        return redirect('halaqat:student_progress', pk=pk, student_id=student_id)
+
+    # Fetch sessions in this halaqa
+    sessions = halaqa.sessions.all().order_by('-date', '-start_time')
+    
+    # Fetch attendances and recitations
+    attendances = Attendance.objects.filter(session__halaqa=halaqa, student=student).select_related('session')
+    recitations = Recitation.objects.filter(session__halaqa=halaqa, student=student).select_related('session')
+
+    att_map = {a.session_id: a for a in attendances}
+    rec_map = {r.session_id: r for r in recitations}
+
+    # Build progress rows
+    progress_rows = []
+    for s in sessions:
+        att = att_map.get(s.id)
+        rec = rec_map.get(s.id)
+        progress_rows.append({
+            'session': s,
+            'attendance': att,
+            'recitation': rec,
+        })
+
+    # Stats
+    total_records = attendances.count()
+    present_count = attendances.filter(status=Attendance.STATUS_PRESENT).count()
+    absent_count = attendances.filter(status=Attendance.STATUS_ABSENT).count()
+    late_count = attendances.filter(status=Attendance.STATUS_LATE).count()
+    excused_count = attendances.filter(status=Attendance.STATUS_EXCUSED).count()
+
+    ratings_counts = {
+        'MUMTAZ': recitations.filter(rating=Recitation.RATING_MUMTAZ).count(),
+        'JAYYID_JIDDAN': recitations.filter(rating=Recitation.RATING_JAYYID_JIDDAN).count(),
+        'JAYYID': recitations.filter(rating=Recitation.RATING_JAYYID).count(),
+        'MAQBOOL': recitations.filter(rating=Recitation.RATING_MAQBOOL).count(),
+        'DAEEF': recitations.filter(rating=Recitation.RATING_DAEEF).count(),
+    }
+
+    # Latest assigned homework
+    latest_rec = recitations.exclude(next_assignment='').order_by('-session__date').first()
+    latest_assignment = latest_rec.next_assignment if latest_rec else None
+
+    context = {
+        'halaqa': halaqa,
+        'student': student,
+        'sessions': sessions,
+        'progress_rows': progress_rows,
+        'can_manage': can_manage,
+        'is_self': is_self,
+        'present_count': present_count,
+        'absent_count': absent_count,
+        'late_count': late_count,
+        'excused_count': excused_count,
+        'ratings_counts': ratings_counts,
+        'latest_assignment': latest_assignment,
+        'rating_choices': Recitation.RATING_CHOICES,
+    }
+    return render(request, 'halaqat/student_progress.html', context)
+
 @login_required
 def schedule_create_view(request, pk):
     halaqa = get_object_or_404(Halaqa, pk=pk)

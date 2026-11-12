@@ -26,11 +26,14 @@ def conversations_list_view(request):
     ).select_related('halaqa').prefetch_related('messages')
 
     # Direct chats where user is participant1 or participant2
-    direct_chats = Conversation.objects.filter(
+    direct_chats = list(Conversation.objects.filter(
         chat_type=Conversation.TYPE_DIRECT
     ).filter(
         Q(participant1=user) | Q(participant2=user)
-    ).select_related('participant1', 'participant2').prefetch_related('messages')
+    ).select_related('participant1', 'participant2').prefetch_related('messages'))
+
+    for c in direct_chats:
+        c.other_user = c.get_other_participant(user)
 
     context = {
         'group_chats': group_chats,

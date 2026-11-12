@@ -13,6 +13,7 @@ urlpatterns = [
     path('<int:pk>/members/', views.manage_members_view, name='manage_members'),
     path('<int:pk>/members/<int:member_id>/update/', views.update_member_role_view, name='update_member_role'),
     path('<int:pk>/members/<int:member_id>/remove/', views.remove_member_view, name='remove_member'),
+    path('<int:pk>/students/<int:student_id>/progress/', views.student_progress_sheet_view, name='student_progress'),
     path('<int:pk>/requests/<int:req_id>/<str:action>/', views.handle_join_request_view, name='handle_join_request'),
     # Schedules
     path('<int:pk>/schedules/create/', views.schedule_create_view, name='schedule_create'),

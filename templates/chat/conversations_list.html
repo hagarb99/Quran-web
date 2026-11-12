@@ -71,7 +71,7 @@
                     {% if direct_chats %}
                         <div class="list-group list-group-flush">
                             {% for c in direct_chats %}
-                                {% with other=c.get_other_participant(user) %}
+                                {% with other=c.other_user %}
                                     <a href="{% url 'chat:conversation_detail' c.id %}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between p-3 border-bottom">
                                         <div class="d-flex align-items-center gap-3">
                                             <div class="avatar-circle">

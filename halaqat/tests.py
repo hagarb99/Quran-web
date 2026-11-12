@@ -124,3 +124,34 @@ class HalaqatBusinessRulesTests(TestCase):
         req.refresh_from_db()
         self.assertEqual(req.status, JoinRequest.STATUS_APPROVED)
         self.assertTrue(HalaqaMember.objects.filter(halaqa=self.halaqa_male, user=self.student_male, role=HalaqaMember.ROLE_STUDENT).exists())
+
+    def test_student_cannot_create_halaqa(self):
+        """Rule: Students are strictly prevented from creating Halaqat."""
+        self.client.login(username='student_m', password='Password123!')
+        response = self.client.post(reverse('halaqat:create'), {
+            'name': 'حلقة غير مصرح بها',
+            'description': 'محاولة إنشاء',
+            'gender': Halaqa.GENDER_MALE,
+            'visibility': Halaqa.VISIBILITY_PUBLIC,
+        }, follow=True)
+        # Must be redirected to my_halaqat with error message
+        self.assertRedirects(response, reverse('halaqat:my_halaqat'))
+        self.assertFalse(Halaqa.objects.filter(name='حلقة غير مصرح بها').exists())
+
+    def test_student_progress_sheet_access(self):
+        """Verify student progress sheet is accessible to student and teacher."""
+        # Add student to male halaqa
+        HalaqaMember.objects.create(halaqa=self.halaqa_male, user=self.student_male, role=HalaqaMember.ROLE_STUDENT)
+        
+        # 1. Student viewing their own sheet
+        self.client.login(username='student_m', password='Password123!')
+        url = reverse('halaqat:student_progress', kwargs={'pk': self.halaqa_male.id, 'student_id': self.student_male.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'جدول المتابعة')
+
+        # 2. Teacher viewing student's sheet
+        self.client.login(username='teacher_m', password='Password123!')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+

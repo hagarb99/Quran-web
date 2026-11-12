@@ -280,3 +280,4 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS("✓ تم إدراج الرسائل والمحادثات والتنبيهات."))
         self.stdout.write(self.style.SUCCESS("تم تجهيز البيانات التجريبية بنجاح!"))
+
