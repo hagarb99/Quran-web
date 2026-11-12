@@ -38,29 +38,14 @@
                 </div>
             </div>
             
-            <div class="col-lg-5">
-                <div class="row g-2">
-                    <div class="col-6">
-                        <div class="stat-card-glass">
-                            <div class="stat-card-icon">
-                                <i class="bi bi-collection-play"></i>
-                            </div>
-                            <div>
-                                <div class="fs-4 fw-bold lh-1">{{ teaching_memberships.count|add:learning_memberships.count }}</div>
-                                <div class="small opacity-75">إجمالي الحلقات</div>
-                            </div>
-                        </div>
+            <div class="col-lg-5 d-flex justify-content-lg-end">
+                <div class="stat-card-glass" style="min-width: 220px;">
+                    <div class="stat-card-icon">
+                        <i class="bi bi-collection-play"></i>
                     </div>
-                    <div class="col-6">
-                        <div class="stat-card-glass">
-                            <div class="stat-card-icon">
-                                <i class="bi bi-shield-check"></i>
-                            </div>
-                            <div>
-                                <div class="fs-4 fw-bold lh-1">{{ user.get_gender_display }}</div>
-                                <div class="small opacity-75">الجنس المسجل</div>
-                            </div>
-                        </div>
+                    <div>
+                        <div class="fs-3 fw-bold lh-1">{{ teaching_memberships.count|add:learning_memberships.count }}</div>
+                        <div class="small opacity-75">إجمالي الحلقات المشترك بها</div>
                     </div>
                 </div>
             </div>
