@@ -45,6 +45,12 @@
                         </a>
                     {% endif %}
 
+                    {% if halaqa.chat_room %}
+                        <a href="{% url 'chat:conversation_detail' halaqa.chat_room.id %}" class="btn btn-outline-custom">
+                            <i class="bi bi-chat-dots-fill me-1"></i> محادثة الحلقة
+                        </a>
+                    {% endif %}
+
                     {% if can_manage_sessions %}
                         {% if session.status == 'SCHEDULED' %}
                             <a href="{% url 'halaqa_sessions:action' session.id 'start' %}" class="btn btn-primary-custom">
@@ -239,6 +245,11 @@
                                             <a href="{% url 'halaqat:student_progress' halaqa.id item.user.id %}" class="btn btn-sm btn-primary-custom" title="فتح دفتر التسميع والمتابعة للطالب">
                                                 <i class="bi bi-journal-bookmark-fill me-1"></i> دفتر التسميع والمتابعة
                                             </a>
+                                            {% if user != item.user and user.is_authenticated %}
+                                                <a href="{% url 'chat:start_direct' item.user.id %}" class="btn btn-sm btn-outline-secondary ms-1" title="محادثة خاصة مع الطالب">
+                                                    <i class="bi bi-chat-text-fill"></i>
+                                                </a>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                 {% endfor %}
