@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}تأكيد حذف عضو من الحلقة{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card card-custom border-danger">
+                <div class="card-header bg-danger-subtle text-danger py-3 fw-bold">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> تأكيد إخراج العضو من الحلقة
+                </div>
+                <div class="card-body p-4 text-center">
+                    <p class="mb-3">هل أنت متأكد من رغبتك في إخراج العضو <strong>{{ member.user.display_name }}</strong> من حلقة <strong>{{ halaqa.name }}</strong>؟</p>
+                    <p class="text-muted small">لن يتمكن العضو من الوصول لمحادثة الحلقة أو جلساتها إلا في حال إضافته مرة أخرى.</p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-2 mt-4">
+                            <button type="submit" class="btn btn-danger px-4">
+                                <i class="bi bi-person-x me-1"></i> نعم، إخراج العضو
+                            </button>
+                            <a href="{% url 'halaqat:manage_members' halaqa.id %}" class="btn btn-outline-secondary">إلغاء</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ session.title }} - {{ halaqa.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb & Back -->
+    <div class="mb-3">
+        <a href="{% url 'halaqat:detail' halaqa.id %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-right me-1"></i> العودة إلى حلقة: {{ halaqa.name }}
+        </a>
+    </div>
+
+    <!-- Main Session Info Card -->
+    <div class="card card-custom mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <h3 class="fw-bold text-primary-dark mb-0">{{ session.title }}</h3>
+                        {% if session.status == 'SCHEDULED' %}
+                            <span class="badge bg-primary fs-6">مجدولة</span>
+                        {% elif session.status == 'IN_PROGRESS' %}
+                            <span class="badge bg-success fs-6">جارية الآن</span>
+                        {% elif session.status == 'COMPLETED' %}
+                            <span class="badge bg-secondary fs-6">مكتملة</span>
+                        {% elif session.status == 'CANCELLED' %}
+                            <span class="badge bg-danger fs-6">ملغاة</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-muted small">
+                        <span><i class="bi bi-calendar3 me-1"></i> {{ session.date|date:"Y-m-d" }}</span>
+                        <span class="mx-2">•</span>
+                        <span><i class="bi bi-clock me-1"></i> {{ session.start_time|time:"H:i" }}{% if session.end_time %} - {{ session.end_time|time:"H:i" }}{% endif %}</span>
+                        <span class="mx-2">•</span>
+                        <span><i class="bi bi-book-half me-1"></i> حلقة: {{ halaqa.name }}</span>
+                    </div>
+                </div>
+
+                <!-- Session Action Buttons -->
+                <div class="d-flex gap-2 flex-wrap">
+                    {% if session.meet_url %}
+                        <a href="{{ session.meet_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-success">
+                            <i class="bi bi-camera-video-fill me-1"></i> دخول اجتماع Google Meet
+                        </a>
+                    {% endif %}
+
+                    {% if can_manage_sessions %}
+                        {% if session.status == 'SCHEDULED' %}
+                            <a href="{% url 'halaqa_sessions:action' session.id 'start' %}" class="btn btn-primary-custom">
+                                <i class="bi bi-play-circle me-1"></i> بدء الجلسة
+                            </a>
+                            <a href="{% url 'halaqa_sessions:action' session.id 'cancel' %}" class="btn btn-outline-danger" onclick="return confirm('هل أنت متأكد من رغبتك في إلغاء هذه الجلسة؟');">
+                                <i class="bi bi-x-circle me-1"></i> إلغاء الجلسة
+                            </a>
+                        {% elif session.status == 'IN_PROGRESS' %}
+                            <a href="{% url 'halaqa_sessions:action' session.id 'complete' %}" class="btn btn-gold-custom">
+                                <i class="bi bi-check-circle-fill me-1"></i> إنهاء الجلسة كمكتملة
+                            </a>
+                            <a href="{% url 'halaqa_sessions:action' session.id 'cancel' %}" class="btn btn-outline-danger" onclick="return confirm('هل أنت متأكد من رغبتك في إلغاء هذه الجلسة؟');">
+                                <i class="bi bi-x-circle me-1"></i> إلغاء الجلسة
+                            </a>
+                        {% elif session.status == 'COMPLETED' %}
+                            <a href="{% url 'halaqa_sessions:action' session.id 'reopen' %}" class="btn btn-outline-warning text-dark">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> إعادة فتح الجلسة
+                            </a>
+                        {% endif %}
+
+                        <a href="{% url 'halaqa_sessions:edit' session.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-pencil me-1"></i> تعديل
+                        </a>
+                        <a href="{% url 'halaqa_sessions:delete' session.id %}" class="btn btn-outline-danger" title="حذف الجلسة">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if session.notes %}
+                <div class="p-3 bg-light rounded border mb-3 small">
+                    <span class="fw-bold d-block mb-1 text-primary-dark"><i class="bi bi-info-circle me-1"></i> ملاحظات الجلسة:</span>
+                    {{ session.notes|linebreaksbr }}
+                </div>
+            {% endif %}
+
+            <!-- Audit Info Bar -->
+            <div class="pt-3 border-top text-muted small d-flex flex-wrap gap-3">
+                {% if session.created_by %}
+                    <span><i class="bi bi-person-plus"></i> أُنشئت بواسطة: {{ session.created_by.display_name }} ({{ session.created_at|date:"Y-m-d H:i" }})</span>
+                {% endif %}
+                {% if session.updated_by %}
+                    <span><i class="bi bi-pencil"></i> آخر تعديل: {{ session.updated_by.display_name }} ({{ session.updated_at|date:"Y-m-d H:i" }})</span>
+                {% endif %}
+                {% if session.completed_by %}
+                    <span><i class="bi bi-check2-all text-success"></i> أُكملت بواسطة: {{ session.completed_by.display_name }} ({{ session.completed_at|date:"Y-m-d H:i" }})</span>
+                {% endif %}
+                {% if session.reopened_by %}
+                    <span><i class="bi bi-arrow-counterclockwise text-warning"></i> أُعيد فتحها بواسطة: {{ session.reopened_by.display_name }} ({{ session.reopened_at|date:"Y-m-d H:i" }})</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Student View: My Status in This Session -->
+    {% if is_student %}
+        <div class="card card-custom mb-4 border-success">
+            <div class="card-header bg-success-subtle text-dark py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-person-check-fill me-2"></i> حالتي وسجل تسميعي في هذه الجلسة</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded border text-center">
+                            <div class="text-muted small mb-1">حالة الحضور والغياب</div>
+                            {% if my_attendance %}
+                                {% if my_attendance.status == 'PRESENT' %}
+                                    <span class="badge bg-success fs-6">حاضر</span>
+                                {% elif my_attendance.status == 'ABSENT' %}
+                                    <span class="badge bg-danger fs-6">غائب</span>
+                                {% elif my_attendance.status == 'LATE' %}
+                                    <span class="badge bg-warning text-dark fs-6">متأخر</span>
+                                {% elif my_attendance.status == 'EXCUSED' %}
+                                    <span class="badge bg-info text-dark fs-6">معذور</span>
+                                {% endif %}
+                                {% if my_attendance.notes %}
+                                    <div class="small text-muted mt-2">{{ my_attendance.notes }}</div>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary fs-6">لم يتم تسجيل الحضور بعد</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="p-3 bg-light rounded border">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-bold text-primary-dark">سجل التسميع وملاحظات المعلم:</span>
+                                {% if my_recitation %}
+                                    <span class="badge badge-rating-{{ my_recitation.rating }} fs-6">{{ my_recitation.get_rating_display }}</span>
+                                {% endif %}
+                            </div>
+                            {% if my_recitation %}
+                                <div class="small mb-1"><strong>الحفظ الجديد:</strong> {{ my_recitation.new_memorization|default:"-" }}</div>
+                                <div class="small mb-1"><strong>المراجعة القريبة:</strong> {{ my_recitation.near_revision|default:"-" }}</div>
+                                <div class="small mb-1"><strong>المراجعة البعيدة:</strong> {{ my_recitation.far_revision|default:"-" }}</div>
+                                {% if my_recitation.teacher_notes %}
+                                    <div class="small mt-2 p-2 bg-white rounded border"><strong>ملاحظات المعلم:</strong> {{ my_recitation.teacher_notes }}</div>
+                                {% endif %}
+                                {% if my_recitation.next_assignment %}
+                                    <div class="small mt-2 p-2 bg-warning-subtle rounded border border-warning text-dark"><strong>الواجب القادم:</strong> {{ my_recitation.next_assignment }}</div>
+                                {% endif %}
+                            {% else %}
+                                <p class="text-muted small mb-0">لم يسجل المعلم تسميعك في هذه الجلسة بعد.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Teacher/Assistant Management Table: Students Roster -->
+    {% if can_record_attendance or can_record_recitation or user.is_platform_admin or is_owner %}
+        <div class="card card-custom">
+            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-people-fill text-gold me-2"></i> سجل الحضور والتسميع للطلاب ({{ student_roster|length }})
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if student_roster %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>الطالب</th>
+                                    <th>حالة الحضور</th>
+                                    <th>التسميع والتقييم</th>
+                                    <th>الحفظ والمراجعة</th>
+                                    <th class="text-end">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in student_roster %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="avatar-circle avatar-circle-sm">
+                                                    {% if item.user.avatar %}
+                                                        <img src="{{ item.user.avatar.url }}" alt="{{ item.user.display_name }}">
+                                                    {% else %}
+                                                        <span>{{ item.user.display_name|slice:":1" }}</span>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">{{ item.user.display_name }}</div>
+                                                    <div class="text-muted small">{{ item.user.phone }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if item.attendance %}
+                                                {% if item.attendance.status == 'PRESENT' %}
+                                                    <span class="badge bg-success">حاضر</span>
+                                                {% elif item.attendance.status == 'ABSENT' %}
+                                                    <span class="badge bg-danger">غائب</span>
+                                                {% elif item.attendance.status == 'LATE' %}
+                                                    <span class="badge bg-warning text-dark">متأخر</span>
+                                                {% elif item.attendance.status == 'EXCUSED' %}
+                                                    <span class="badge bg-info text-dark">معذور</span>
+                                                {% endif %}
+                                                {% if item.attendance.notes %}
+                                                    <div class="small text-muted" title="{{ item.attendance.notes }}">{{ item.attendance.notes|truncatewords:4 }}</div>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-light text-muted border">غير مسجل</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.recitation %}
+                                                <span class="badge badge-rating-{{ item.recitation.rating }}">{{ item.recitation.get_rating_display }}</span>
+                                                {% if item.recitation.next_assignment %}
+                                                    <div class="small text-primary-dark mt-1" title="{{ item.recitation.next_assignment }}">
+                                                        <i class="bi bi-bookmark-check"></i> {{ item.recitation.next_assignment|truncatewords:4 }}
+                                                    </div>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted small">لم يُسمّع</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="small">
+                                            {% if item.recitation %}
+                                                <div><strong>الحفظ:</strong> {{ item.recitation.new_memorization|default:"-" }}</div>
+                                                <div><strong>المراجعة:</strong> {{ item.recitation.near_revision|default:"-" }}</div>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm">
+                                                {% if can_record_attendance %}
+                                                    <a href="{% url 'attendance:record' session.id item.user.id %}" class="btn btn-outline-success" title="رصد أو تعديل الحضور">
+                                                        <i class="bi bi-calendar-check me-1"></i> حضور
+                                                    </a>
+                                                {% endif %}
+                                                {% if can_record_recitation %}
+                                                    <a href="{% url 'recitations:record' session.id item.user.id %}" class="btn btn-gold-custom" title="تدوين أو تعديل التسميع">
+                                                        <i class="bi bi-journal-text me-1"></i> تسميع
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-people empty-state-icon"></i>
+                        <h6>لا يوجد طلاب مسجلون في هذه الحلقة حتى الآن</h6>
+                        <p class="text-muted small">أضف طلاباً للحلقة عبر صفحة إدارة الأعضاء ليتم إدراجهم في سجلات الحضور والتسميع.</p>
+                        <a href="{% url 'halaqat:manage_members' halaqa.id %}" class="btn btn-sm btn-primary-custom">
+                            <i class="bi bi-person-plus me-1"></i> إضافة طلاب للحلقة
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

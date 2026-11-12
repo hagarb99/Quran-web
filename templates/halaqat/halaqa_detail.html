@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ halaqa.name }} - منصة حلقات{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Card -->
+    <div class="card card-custom mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h3 class="fw-bold text-primary-dark mb-0">{{ halaqa.name }}</h3>
+                        <span class="badge {% if halaqa.visibility == 'PUBLIC' %}badge-success-custom{% else %}badge-primary-custom{% endif %}">
+                            {{ halaqa.get_visibility_display }}
+                        </span>
+                        <span class="badge badge-gold">{{ halaqa.get_gender_display }}</span>
+                    </div>
+                    <div class="text-muted small">
+                        <span><i class="bi bi-person-fill"></i> المالك: {{ halaqa.owner.display_name }}</span>
+                        <span class="mx-2">•</span>
+                        <span><i class="bi bi-people"></i> {{ members.count }} عضو</span>
+                        <span class="mx-2">•</span>
+                        <span><i class="bi bi-calendar3"></i> أنشئت في {{ halaqa.created_at|date:"Y-m-d" }}</span>
+                    </div>
+                </div>
+
+                <!-- Action Controls -->
+                <div class="d-flex gap-2 flex-wrap">
+                    {% if halaqa.chat_room %}
+                        <a href="{% url 'chat:conversation_detail' halaqa.chat_room.id %}" class="btn btn-outline-custom">
+                            <i class="bi bi-chat-text-fill me-1"></i> محادثة الحلقة
+                        </a>
+                    {% endif %}
+
+                    {% if can_manage %}
+                        <a href="{% url 'halaqat:manage_members' halaqa.id %}" class="btn btn-primary-custom position-relative">
+                            <i class="bi bi-people-fill me-1"></i> إدارة الأعضاء
+                            {% if pending_requests %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ pending_requests.count }}
+                                </span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'halaqat:edit' halaqa.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-gear-fill me-1"></i> تعديل الحلقة
+                        </a>
+                    {% endif %}
+
+                    {% if not member and user.is_authenticated and not user.is_platform_admin and not is_owner %}
+                        {% if has_pending_request %}
+                            <button class="btn btn-secondary" disabled>
+                                <i class="bi bi-hourglass-split me-1"></i> طلب انضمامك قيد المراجعة
+                            </button>
+                        {% else %}
+                            <a href="{% url 'halaqat:request_join' halaqa.id %}" class="btn btn-gold-custom">
+                                <i class="bi bi-send-plus me-1"></i> طلب انضمام للحلقة
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if halaqa.description %}
+                <p class="text-secondary mb-0 border-top pt-3">{{ halaqa.description|linebreaksbr }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Column: Sessions and Details -->
+        <div class="col-lg-8 mb-4">
+            <!-- Sessions Card -->
+            <div class="card card-custom mb-4">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-event text-gold me-2"></i> جلسات الحلقة</h5>
+                    {% if can_manage_sessions %}
+                        <a href="{% url 'halaqa_sessions:create' halaqa.id %}" class="btn btn-sm btn-gold-custom">
+                            <i class="bi bi-plus-circle me-1"></i> إضافة جلسة جديدة
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="card-body p-0">
+                    {% if sessions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>الجلسة</th>
+                                        <th>التاريخ والوقت</th>
+                                        <th>الحالة</th>
+                                        <th>رابط الاجتماع</th>
+                                        <th class="text-end">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for s in sessions %}
+                                        <tr>
+                                            <td>
+                                                <a href="{% url 'halaqa_sessions:detail' s.id %}" class="fw-bold text-decoration-none text-primary-dark">
+                                                    {{ s.title }}
+                                                </a>
+                                            </td>
+                                            <td class="small">
+                                                <div><i class="bi bi-calendar3 me-1"></i> {{ s.date|date:"Y-m-d" }}</div>
+                                                <div class="text-muted"><i class="bi bi-clock me-1"></i> {{ s.start_time|time:"H:i" }}{% if s.end_time %} - {{ s.end_time|time:"H:i" }}{% endif %}</div>
+                                            </td>
+                                            <td>
+                                                {% if s.status == 'SCHEDULED' %}
+                                                    <span class="badge bg-primary">مجدولة</span>
+                                                {% elif s.status == 'IN_PROGRESS' %}
+                                                    <span class="badge bg-success">جارية الآن</span>
+                                                {% elif s.status == 'COMPLETED' %}
+                                                    <span class="badge bg-secondary">مكتملة</span>
+                                                {% elif s.status == 'CANCELLED' %}
+                                                    <span class="badge bg-danger">ملغاة</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if s.meet_url %}
+                                                    <a href="{{ s.meet_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success">
+                                                        <i class="bi bi-camera-video me-1"></i> دخول
+                                                    </a>
+                                                {% else %}
+                                                    <span class="text-muted small">حضوري</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="{% url 'halaqa_sessions:detail' s.id %}" class="btn btn-sm btn-outline-custom">
+                                                    عرض
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-calendar-x empty-state-icon"></i>
+                            <h6>لا توجد جلسات مجدولة حالياً</h6>
+                            {% if can_manage_sessions %}
+                                <a href="{% url 'halaqa_sessions:create' halaqa.id %}" class="btn btn-sm btn-gold-custom mt-2">
+                                    <i class="bi bi-plus-circle me-1"></i> جدولة أول جلسة
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar: Schedules and Members -->
+        <div class="col-lg-4">
+            <!-- Weekly Timetable Card -->
+            <div class="card card-custom mb-4">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-clock-history text-gold me-2"></i> المواعيد الأسبوعية</h6>
+                    {% if can_manage %}
+                        <a href="{% url 'halaqat:schedule_create' halaqa.id %}" class="btn btn-sm btn-outline-custom py-0 px-2">
+                            <i class="bi bi-plus"></i> موعد
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="card-body p-3">
+                    {% if schedules %}
+                        <ul class="list-group list-group-flush">
+                            {% for sc in schedules %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom">
+                                    <div>
+                                        <div class="fw-bold text-primary-dark">{{ sc.get_day_of_week_display }}</div>
+                                        <div class="text-muted small">{{ sc.start_time|time:"H:i" }} - {{ sc.end_time|time:"H:i" }}</div>
+                                        {% if sc.notes %}<div class="text-muted small fst-italic">{{ sc.notes }}</div>{% endif %}
+                                    </div>
+                                    {% if can_manage %}
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'halaqat:schedule_edit' halaqa.id sc.id %}" class="btn btn-sm btn-outline-secondary" title="تعديل">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{% url 'halaqat:schedule_delete' halaqa.id sc.id %}" class="btn btn-sm btn-outline-danger" title="حذف">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted small mb-0">لم تتم إضافة جدول مواعيد أسبوعي بعد.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Members Preview Card -->
+            <div class="card card-custom">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-people text-gold me-2"></i> أعضاء الحلقة ({{ members.count }})</h6>
+                    {% if can_manage %}
+                        <a href="{% url 'halaqat:manage_members' halaqa.id %}" class="btn btn-sm btn-outline-custom py-0 px-2">
+                            إدارة
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="card-body p-3">
+                    <ul class="list-unstyled mb-0">
+                        {% for m in members|slice:":8" %}
+                            <li class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-circle avatar-circle-sm">
+                                        {% if m.user.avatar %}
+                                            <img src="{{ m.user.avatar.url }}" alt="{{ m.user.display_name }}">
+                                        {% else %}
+                                            <span>{{ m.user.display_name|slice:":1" }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold small">{{ m.user.display_name }}</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">{{ m.get_role_display }}</div>
+                                    </div>
+                                </div>
+                                {% if user != m.user and user.is_authenticated %}
+                                    <a href="{% url 'chat:start_direct' m.user.id %}" class="btn btn-sm btn-light border" title="محادثة خاصة">
+                                        <i class="bi bi-chat text-muted"></i>
+                                    </a>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    {% if members.count > 8 and can_manage %}
+                        <div class="text-center mt-2">
+                            <a href="{% url 'halaqat:manage_members' halaqa.id %}" class="small text-primary-dark fw-bold">عرض جميع الأعضاء ({{ members.count }})</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

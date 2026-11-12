@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}تسجيل الدخول - منصة حلقات{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card card-custom shadow">
+                <div class="card-header-custom text-center py-4 bg-white border-0">
+                    <div class="avatar-circle mx-auto mb-3" style="width: 56px; height: 56px; background-color: var(--primary-light);">
+                        <i class="bi bi-box-arrow-in-right text-primary-dark fs-3"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1 text-primary-dark">تسجيل الدخول</h3>
+                    <p class="text-muted small mb-0">أهلاً بك مجدداً في منصة حلقات لتعليم القرآن</p>
+                </div>
+                <div class="card-body p-4 pt-0">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_login_field" class="form-label fw-semibold">اسم المستخدم أو البريد أو الهاتف</label>
+                            {{ form.login_field }}
+                            {% if form.login_field.errors %}
+                                <div class="text-danger small mt-1">{{ form.login_field.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="id_password" class="form-label fw-semibold">كلمة المرور</label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary-custom w-100 py-2 fs-6">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> دخول
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <p class="text-muted small mb-0">ليس لديك حساب؟ <a href="{% url 'accounts:register' %}" class="fw-bold text-primary-dark text-decoration-none">إنشاء حساب جديد</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

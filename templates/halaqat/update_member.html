@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}تعديل صلاحيات العضو: {{ member.user.display_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card card-custom">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-sliders text-gold me-2"></i> تعديل دور وصلاحيات العضو</h5>
+                    <a href="{% url 'halaqat:manage_members' halaqa.id %}" class="btn btn-sm btn-outline-secondary">إلغاء</a>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded border">
+                        <div class="avatar-circle">
+                            <span>{{ member.user.display_name|slice:":1" }}</span>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">{{ member.user.display_name }}</h6>
+                            <div class="text-muted small">{{ member.user.phone }} &bull; {{ member.user.get_gender_display }}</div>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">دور العضوية في الحلقة <span class="text-danger">*</span></label>
+                            {{ form.role }}
+                        </div>
+
+                        <div class="p-3 bg-light rounded border mb-4">
+                            <span class="fw-bold small d-block mb-2 text-primary-dark">الصلاحيات الممنوحة:</span>
+                            <div class="form-check mb-2">
+                                {{ form.can_manage_sessions }}
+                                <label class="form-check-label small" for="{{ form.can_manage_sessions.id_for_label }}">إدارة وجدولة الجلسات</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                {{ form.can_record_attendance }}
+                                <label class="form-check-label small" for="{{ form.can_record_attendance.id_for_label }}">تسجيل الحضور والغياب</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                {{ form.can_record_recitation }}
+                                <label class="form-check-label small" for="{{ form.can_record_recitation.id_for_label }}">تسجيل التسميع ومستويات الأداء</label>
+                            </div>
+                            <div class="form-check">
+                                {{ form.can_manage_members }}
+                                <label class="form-check-label small" for="{{ form.can_manage_members.id_for_label }}">إدارة وقبول الأعضاء الجدد</label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary-custom px-4">
+                                <i class="bi bi-save me-1"></i> حفظ الصلاحيات
+                            </button>
+                            <a href="{% url 'halaqat:manage_members' halaqa.id %}" class="btn btn-outline-secondary">إلغاء</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

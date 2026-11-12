@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}تسجيل حضور الطالب: {{ student.display_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card card-custom">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-check text-gold me-2"></i> رصد الحضور والغياب</h5>
+                    <a href="{% url 'halaqa_sessions:detail' session.id %}" class="btn btn-sm btn-outline-secondary">إلغاء</a>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded border">
+                        <div class="avatar-circle">
+                            <span>{{ student.display_name|slice:":1" }}</span>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">{{ student.display_name }}</h6>
+                            <div class="text-muted small">الجلسة: {{ session.title }} ({{ session.date }})</div>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">حالة الحضور <span class="text-danger">*</span></label>
+                            <select name="status" class="form-select" required>
+                                <option value="PRESENT" {% if attendance and attendance.status == 'PRESENT' or not attendance %}selected{% endif %}>حاضر</option>
+                                <option value="ABSENT" {% if attendance and attendance.status == 'ABSENT' %}selected{% endif %}>غائب</option>
+                                <option value="LATE" {% if attendance and attendance.status == 'LATE' %}selected{% endif %}>متأخر</option>
+                                <option value="EXCUSED" {% if attendance and attendance.status == 'EXCUSED' %}selected{% endif %}>معذور</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">ملاحظات (اختياري)</label>
+                            <input type="text" name="notes" value="{{ attendance.notes|default:'' }}" class="form-control" placeholder="مثال: تأخر 15 دقيقة بعذر، أو خرج مبكراً">
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary-custom px-4">
+                                    <i class="bi bi-save me-1"></i> حفظ السجل
+                                </button>
+                                <a href="{% url 'halaqa_sessions:detail' session.id %}" class="btn btn-outline-secondary">رجوع</a>
+                            </div>
+
+                            {% if attendance %}
+                                <a href="{% url 'attendance:delete' attendance.id %}" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash me-1"></i> حذف
+                                </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

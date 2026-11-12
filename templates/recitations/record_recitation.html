@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}تسجيل تسميع الطالب: {{ student.display_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card card-custom">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-journal-check text-gold me-2"></i>
+                        {% if recitation %}تعديل سجل التسميع{% else %}تدوين تسميع جديد{% endif %}
+                    </h5>
+                    <a href="{% url 'halaqa_sessions:detail' session.id %}" class="btn btn-sm btn-outline-secondary">إلغاء</a>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded border">
+                        <div class="avatar-circle">
+                            <span>{{ student.display_name|slice:":1" }}</span>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">{{ student.display_name }}</h6>
+                            <div class="text-muted small">الجلسة: {{ session.title }} &bull; حلقة: {{ session.halaqa.name }}</div>
+                        </div>
+                    </div>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="student" value="{{ student.id }}">
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-semibold">الحفظ الجديد</label>
+                                {{ form.new_memorization }}
+                                {% if form.new_memorization.errors %}
+                                    <div class="text-danger small mt-1">{{ form.new_memorization.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">المراجعة القريبة</label>
+                                {{ form.near_revision }}
+                                {% if form.near_revision.errors %}
+                                    <div class="text-danger small mt-1">{{ form.near_revision.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">المراجعة البعيدة</label>
+                                {{ form.far_revision }}
+                                {% if form.far_revision.errors %}
+                                    <div class="text-danger small mt-1">{{ form.far_revision.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">مستوى الأداء والتقييم <span class="text-danger">*</span></label>
+                            {{ form.rating }}
+                            <div class="form-text small">تقييم لفظي لمستوى جودة الحفظ والأحكام (ممتاز، جيد جداً، جيد، مقبول، ضعيف).</div>
+                            {% if form.rating.errors %}
+                                <div class="text-danger small mt-1">{{ form.rating.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">ملاحظات المعلم وتوجيهات التجويد</label>
+                            {{ form.teacher_notes }}
+                            {% if form.teacher_notes.errors %}
+                                <div class="text-danger small mt-1">{{ form.teacher_notes.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">الواجب القادم (اختياري)</label>
+                            {{ form.next_assignment }}
+                            {% if form.next_assignment.errors %}
+                                <div class="text-danger small mt-1">{{ form.next_assignment.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-gold-custom px-4">
+                                    <i class="bi bi-save me-1"></i> حفظ سجل التسميع
+                                </button>
+                                <a href="{% url 'halaqa_sessions:detail' session.id %}" class="btn btn-outline-secondary">رجوع</a>
+                            </div>
+
+                            {% if recitation %}
+                                <a href="{% url 'recitations:delete' recitation.id %}" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash me-1"></i> حذف السجل
+                                </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

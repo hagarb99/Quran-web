@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}تعديل الحلقة: {{ halaqa.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card card-custom">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-pencil-square text-gold me-2"></i> تعديل بيانات الحلقة</h5>
+                    <a href="{% url 'halaqat:detail' halaqa.id %}" class="btn btn-sm btn-outline-secondary">رجوع للحلقة</a>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_name" class="form-label fw-semibold">اسم الحلقة <span class="text-danger">*</span></label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_description" class="form-label fw-semibold">وصف الحلقة</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_gender" class="form-label fw-semibold">الفئة (الجنس) <span class="text-danger">*</span></label>
+                                {{ form.gender }}
+                                {% if form.gender.errors %}
+                                    <div class="text-danger small mt-1">{{ form.gender.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label for="id_visibility" class="form-label fw-semibold">مستوى الخصوصية <span class="text-danger">*</span></label>
+                                {{ form.visibility }}
+                                {% if form.visibility.errors %}
+                                    <div class="text-danger small mt-1">{{ form.visibility.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary-custom px-4">
+                                <i class="bi bi-save me-1"></i> حفظ التعديلات
+                            </button>
+                            <a href="{% url 'halaqat:detail' halaqa.id %}" class="btn btn-outline-secondary">إلغاء</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

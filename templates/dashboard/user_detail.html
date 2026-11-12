@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}تفاصيل المستخدم: {{ target_user.display_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="mb-3">
+        <a href="{% url 'dashboard:users_list' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-right me-1"></i> العودة لقائمة المستخدمين
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- User Info Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card card-custom text-center p-4">
+                <div class="avatar-circle avatar-circle-lg mx-auto mb-3">
+                    {% if target_user.avatar %}
+                        <img src="{{ target_user.avatar.url }}" alt="{{ target_user.display_name }}">
+                    {% else %}
+                        <span>{{ target_user.display_name|slice:":1" }}</span>
+                    {% endif %}
+                </div>
+                <h4 class="fw-bold mb-1 text-primary-dark">{{ target_user.display_name }}</h4>
+                <div class="mb-2">
+                    <span class="badge badge-gold">{{ target_user.get_role_display }}</span>
+                    <span class="badge badge-primary-custom">{{ target_user.get_gender_display }}</span>
+                    {% if target_user.is_suspended %}
+                        <span class="badge bg-danger">معلق</span>
+                    {% else %}
+                        <span class="badge bg-success">نشط</span>
+                    {% endif %}
+                </div>
+
+                <div class="text-start small p-3 bg-light rounded border my-3">
+                    <div class="mb-2"><strong>اسم المستخدم:</strong> @{{ target_user.username }}</div>
+                    <div class="mb-2"><strong>رقم الهاتف:</strong> {{ target_user.phone }}</div>
+                    <div class="mb-2"><strong>البريد:</strong> {{ target_user.email }}</div>
+                    <div class="mb-2"><strong>تاريخ الانضمام:</strong> {{ target_user.date_joined|date:"Y-m-d H:i" }}</div>
+                    <div><strong>آخر تسجيل دخول:</strong> {{ target_user.last_login|date:"Y-m-d H:i"|default:"لم يسجل الدخول بعد" }}</div>
+                </div>
+
+                {% if target_user.bio %}
+                    <div class="text-start small p-3 bg-white rounded border mb-3">
+                        <span class="fw-bold d-block mb-1 text-primary-dark">النبذة:</span>
+                        {{ target_user.bio|linebreaks }}
+                    </div>
+                {% endif %}
+
+                <!-- Suspend / Reactivate Action -->
+                {% if target_user != user %}
+                    <form method="post" action="{% url 'dashboard:toggle_user_suspend' target_user.id %}" onsubmit="return confirm('هل أنت متأكد من تغيير حالة حساب هذا المستخدم؟');">
+                        {% csrf_token %}
+                        {% if target_user.is_suspended %}
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-unlock-fill me-1"></i> إعادة تفعيل الحساب
+                            </button>
+                        {% else %}
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <i class="bi bi-slash-circle me-1"></i> تعليق الحساب
+                            </button>
+                        {% endif %}
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Halaqat & Activity -->
+        <div class="col-lg-8">
+            <!-- Memberships -->
+            <div class="card card-custom mb-4">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-collection me-2"></i> الحلقات المشترك بها ({{ memberships.count }})</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if memberships %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>الحلقة</th>
+                                        <th>دور العضوية</th>
+                                        <th>تاريخ الانضمام</th>
+                                        <th class="text-end">عرض</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for m in memberships %}
+                                        <tr>
+                                            <td>
+                                                <a href="{% url 'halaqat:detail' m.halaqa.id %}" class="fw-bold text-decoration-none text-primary-dark">
+                                                    {{ m.halaqa.name }}
+                                                </a>
+                                            </td>
+                                            <td><span class="badge badge-gold">{{ m.get_role_display }}</span></td>
+                                            <td class="small text-muted">{{ m.joined_at|date:"Y-m-d" }}</td>
+                                            <td class="text-end">
+                                                <a href="{% url 'halaqat:detail' m.halaqa.id %}" class="btn btn-sm btn-outline-secondary">
+                                                    صفحة الحلقة
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-4 text-center text-muted small">
+                            المستخدم غير منضم لأي حلقة حالياً.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="card card-custom p-3 text-center border-start border-4 border-primary">
+                        <div class="text-muted small mb-1">جلسات الحضور المرصودة</div>
+                        <div class="fs-4 fw-bold text-primary-dark">{{ attendances_count }}</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card card-custom p-3 text-center border-start border-4 border-warning">
+                        <div class="text-muted small mb-1">سجلات التسميع المكتملة</div>
+                        <div class="fs-4 fw-bold text-warning">{{ recitations_count }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

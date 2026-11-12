@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block title %}إدارة أعضاء حلقة: {{ halaqa.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold text-primary-dark mb-1">
+                <i class="bi bi-people-fill text-gold me-2"></i> إدارة أعضاء حلقة: {{ halaqa.name }}
+            </h3>
+            <p class="text-muted small mb-0">إضافة معلمين ومساعدين وطلاب وإدارة صلاحياتهم والبت في طلبات الانضمام</p>
+        </div>
+        <a href="{% url 'halaqat:detail' halaqa.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-right me-1"></i> العودة للحلقة
+        </a>
+    </div>
+
+    <!-- Pending Join Requests Section -->
+    {% if pending_requests %}
+        <div class="card card-custom mb-4 border-warning">
+            <div class="card-header bg-warning-subtle text-dark py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-hourglass-split me-2"></i> طلبات الانضمام المعلقة ({{ pending_requests.count }})
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>اسم الطالب</th>
+                                <th>الهاتف</th>
+                                <th>الجنس</th>
+                                <th>تاريخ الطلب</th>
+                                <th class="text-end">القرار</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for req in pending_requests %}
+                                <tr>
+                                    <td class="fw-semibold">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="avatar-circle avatar-circle-sm">
+                                                <span>{{ req.user.display_name|slice:":1" }}</span>
+                                            </div>
+                                            {{ req.user.display_name }}
+                                        </div>
+                                    </td>
+                                    <td>{{ req.user.phone }}</td>
+                                    <td><span class="badge badge-primary-custom">{{ req.user.get_gender_display }}</span></td>
+                                    <td class="small text-muted">{{ req.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td class="text-end">
+                                        <a href="{% url 'halaqat:handle_join_request' halaqa.id req.id 'approve' %}" class="btn btn-sm btn-success me-1">
+                                            <i class="bi bi-check-lg"></i> قبول
+                                        </a>
+                                        <a href="{% url 'halaqat:handle_join_request' halaqa.id req.id 'reject' %}" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-x-lg"></i> رفض
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Add Member by Phone Card -->
+        <div class="col-lg-5 mb-4">
+            <div class="card card-custom sticky-top" style="top: 85px;">
+                <div class="card-header-custom">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-person-plus-fill text-gold me-2"></i> إضافة عضو برقم الهاتف</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info py-2 small mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        يمكنك إضافة أي مستخدم مسجل بالمنصة عبر رقم هاتفه.
+                        <br>
+                        <strong>تنبيه:</strong> ينبغي أن يطابق جنس الطالب فئة الحلقة (<strong>{{ halaqa.get_gender_display }}</strong>).
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="add_member" value="1">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">رقم الهاتف المسجل <span class="text-danger">*</span></label>
+                            {{ add_form.phone }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">دور العضوية <span class="text-danger">*</span></label>
+                            {{ add_form.role }}
+                        </div>
+
+                        <div class="p-3 bg-light rounded border mb-3">
+                            <span class="fw-bold small d-block mb-2 text-primary-dark">صلاحيات المساعد (في حال كان الدور مساعداً):</span>
+                            <div class="form-check mb-2">
+                                {{ add_form.can_manage_sessions }}
+                                <label class="form-check-label small" for="{{ add_form.can_manage_sessions.id_for_label }}">إدارة وجدولة الجلسات</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                {{ add_form.can_record_attendance }}
+                                <label class="form-check-label small" for="{{ add_form.can_record_attendance.id_for_label }}">تسجيل الحضور والغياب</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                {{ add_form.can_record_recitation }}
+                                <label class="form-check-label small" for="{{ add_form.can_record_recitation.id_for_label }}">تسجيل التسميع ومستويات الأداء</label>
+                            </div>
+                            <div class="form-check">
+                                {{ add_form.can_manage_members }}
+                                <label class="form-check-label small" for="{{ add_form.can_manage_members.id_for_label }}">إدارة وقبول الأعضاء الجدد</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary-custom w-100">
+                            <i class="bi bi-person-check me-1"></i> إضافة العضو للحلقة
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Members List -->
+        <div class="col-lg-7">
+            <div class="card card-custom">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-people text-gold me-2"></i> قائمة الأعضاء الحاليين</h5>
+                    <span class="badge badge-primary-custom">{{ members.count }} عضو</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>العضو</th>
+                                    <th>الدور</th>
+                                    <th>الهاتف</th>
+                                    <th class="text-end">الإجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for m in members %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="avatar-circle avatar-circle-sm">
+                                                    {% if m.user.avatar %}
+                                                        <img src="{{ m.user.avatar.url }}" alt="{{ m.user.display_name }}">
+                                                    {% else %}
+                                                        <span>{{ m.user.display_name|slice:":1" }}</span>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">{{ m.user.display_name }}</div>
+                                                    <div class="text-muted small">{{ m.user.get_gender_display }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if m.role == 'OWNER' %}
+                                                <span class="badge badge-gold">مالك</span>
+                                            {% elif m.role == 'TEACHER' %}
+                                                <span class="badge bg-success">معلم</span>
+                                            {% elif m.role == 'ASSISTANT' %}
+                                                <span class="badge bg-info text-dark">مساعد</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">طالب</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="small">{{ m.user.phone }}</td>
+                                        <td class="text-end">
+                                            {% if m.role != 'OWNER' %}
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{% url 'halaqat:update_member_role' halaqa.id m.id %}" class="btn btn-outline-secondary" title="تعديل الصلاحيات">
+                                                        <i class="bi bi-sliders"></i>
+                                                    </a>
+                                                    <a href="{% url 'halaqat:remove_member' halaqa.id m.id %}" class="btn btn-outline-danger" title="حذف العضو">
+                                                        <i class="bi bi-trash"></i>
+                                                    </a>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted small fst-italic">المالك</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

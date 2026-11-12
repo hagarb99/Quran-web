@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}حذف سجل حضور الطالب{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card card-custom border-danger">
+                <div class="card-header bg-danger-subtle text-danger py-3 fw-bold">
+                    <i class="bi bi-trash-fill me-2"></i> تأكيد حذف سجل الحضور
+                </div>
+                <div class="card-body p-4 text-center">
+                    <p class="mb-3">هل أنت متأكد من حذف سجل حضور الطالب <strong>{{ attendance.student.display_name }}</strong> لجلسة <strong>{{ session.title }}</strong>؟</p>
+                    <p class="text-muted small">سيتم حفظ بيانات التدقيق مع تطبيق الحذف المؤقت (Soft Delete).</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-2 mt-4">
+                            <button type="submit" class="btn btn-danger px-4">نعم، حذف السجل</button>
+                            <a href="{% url 'halaqa_sessions:detail' session.id %}" class="btn btn-outline-secondary">إلغاء</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

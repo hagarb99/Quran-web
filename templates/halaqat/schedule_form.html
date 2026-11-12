@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_edit %}تعديل موعد أسبوعي{% else %}إضافة موعد أسبوعي جديد{% endif %} - {{ halaqa.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card card-custom">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-clock-history text-gold me-2"></i>
+                        {% if is_edit %}تعديل الموعد الأسبوعي{% else %}إضافة موعد أسبوعي جديد{% endif %}
+                    </h5>
+                    <a href="{% url 'halaqat:detail' halaqa.id %}" class="btn btn-sm btn-outline-secondary">إلغاء</a>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">اليوم الأسبوعي <span class="text-danger">*</span></label>
+                            {{ form.day_of_week }}
+                            {% if form.day_of_week.errors %}
+                                <div class="text-danger small mt-1">{{ form.day_of_week.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-semibold">وقت البدء <span class="text-danger">*</span></label>
+                                {{ form.start_time }}
+                                {% if form.start_time.errors %}
+                                    <div class="text-danger small mt-1">{{ form.start_time.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-semibold">وقت الانتهاء <span class="text-danger">*</span></label>
+                                {{ form.end_time }}
+                                {% if form.end_time.errors %}
+                                    <div class="text-danger small mt-1">{{ form.end_time.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">ملاحظات إضافية</label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="text-danger small mt-1">{{ form.notes.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary-custom px-4">
+                                <i class="bi bi-save me-1"></i> حفظ الموعد
+                            </button>
+                            <a href="{% url 'halaqat:detail' halaqa.id %}" class="btn btn-outline-secondary">إلغاء</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}المحادثات والرسائل - منصة حلقات{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold text-primary-dark mb-1">
+                <i class="bi bi-chat-dots-fill text-gold me-2"></i> المحادثات والرسائل
+            </h3>
+            <p class="text-muted small mb-0">المحادثات الجماعية لحلقاتك القرآنية والرسائل المباشرة مع المعلمين والطلاب</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Group Chats Section -->
+        <div class="col-lg-6 mb-4">
+            <div class="card card-custom h-100">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-collection text-gold me-2"></i> محادثات الحلقات الجماعية</h5>
+                    <span class="badge badge-primary-custom">{{ group_chats.count }} حلقة</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if group_chats %}
+                        <div class="list-group list-group-flush">
+                            {% for c in group_chats %}
+                                <a href="{% url 'chat:conversation_detail' c.id %}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between p-3 border-bottom">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar-circle" style="background-color: var(--primary-light);">
+                                            <i class="bi bi-book-half text-primary-dark"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-1 text-primary-dark">{{ c.halaqa.name }}</h6>
+                                            <div class="text-muted small text-truncate" style="max-width: 250px;">
+                                                {% with last_msg=c.messages.last %}
+                                                    {% if last_msg %}
+                                                        <span class="fw-semibold">{{ last_msg.sender.display_name }}:</span> {{ last_msg.content }}
+                                                    {% else %}
+                                                        <span class="fst-italic text-muted">لا توجد رسائل بعد</span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end text-muted small">
+                                        <i class="bi bi-chevron-left text-muted"></i>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-chat-square-text empty-state-icon"></i>
+                            <h6>لا توجد محادثات حلقة حالياً</h6>
+                            <p class="text-muted small">عند انضمامك لحلقة قرآنية ستظهر محادثتها هنا تلقائياً.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Direct Chats Section -->
+        <div class="col-lg-6 mb-4">
+            <div class="card card-custom h-100">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-person-lines-fill text-gold me-2"></i> المحادثات الخاصة المباشرة</h5>
+                    <span class="badge badge-gold">{{ direct_chats.count }} محادثة</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if direct_chats %}
+                        <div class="list-group list-group-flush">
+                            {% for c in direct_chats %}
+                                {% with other=c.get_other_participant(user) %}
+                                    <a href="{% url 'chat:conversation_detail' c.id %}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between p-3 border-bottom">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="avatar-circle">
+                                                {% if other and other.avatar %}
+                                                    <img src="{{ other.avatar.url }}" alt="{{ other.display_name }}">
+                                                {% else %}
+                                                    <span>{{ other.display_name|slice:":1" }}</span>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <h6 class="fw-bold mb-1 text-primary-dark">{{ other.display_name }}</h6>
+                                                <div class="text-muted small text-truncate" style="max-width: 250px;">
+                                                    {% with last_msg=c.messages.last %}
+                                                        {% if last_msg %}
+                                                            <span class="fw-semibold">{% if last_msg.sender == user %}أنت: {% endif %}</span>{{ last_msg.content }}
+                                                        {% else %}
+                                                            <span class="fst-italic text-muted">محادثة جديدة</span>
+                                                        {% endif %}
+                                                    {% endwith %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end text-muted small">
+                                            <i class="bi bi-chevron-left text-muted"></i>
+                                        </div>
+                                    </a>
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-chat-heart empty-state-icon"></i>
+                            <h6>لا توجد محادثات خاصة بعد</h6>
+                            <p class="text-muted small">يمكنك بدء محادثة مباشرة مع أي معلم أو زميل من خلال بطاقات أعضاء الحلقة.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

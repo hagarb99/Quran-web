@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}الإشعارات والتنبيهات - منصة حلقات{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold text-primary-dark mb-1">
+                <i class="bi bi-bell-fill text-gold me-2"></i> مركز الإشعارات
+            </h3>
+            <p class="text-muted small mb-0">جميع تنبيهات الجلسات الجديدة والمواعيد والرسائل وطلبات الانضمام</p>
+        </div>
+        {% if notifications %}
+            <form method="post" action="{% url 'notifications:mark_all_read' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-check2-all me-1"></i> تحديد الكل كمقروء
+                </button>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="card card-custom">
+        <div class="card-body p-0">
+            {% if notifications %}
+                <div class="list-group list-group-flush">
+                    {% for n in notifications %}
+                        <a href="{% url 'notifications:read_and_redirect' n.id %}" class="list-group-item list-group-item-action p-3 d-flex align-items-center justify-content-between border-bottom {% if not n.is_read %}bg-light fw-semibold{% endif %}">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-circle avatar-circle-sm {% if not n.is_read %}bg-warning-subtle text-dark{% else %}bg-light text-muted{% endif %}">
+                                    {% if n.notification_type == 'SESSION_CREATED' %}
+                                        <i class="bi bi-calendar-plus text-primary-dark"></i>
+                                    {% elif n.notification_type == 'SESSION_UPDATED' %}
+                                        <i class="bi bi-clock-history text-warning"></i>
+                                    {% elif n.notification_type == 'SESSION_CANCELLED' %}
+                                        <i class="bi bi-x-circle text-danger"></i>
+                                    {% elif n.notification_type == 'CHAT_MESSAGE' %}
+                                        <i class="bi bi-chat-text text-info"></i>
+                                    {% elif n.notification_type == 'JOIN_REQUEST' %}
+                                        <i class="bi bi-person-plus text-success"></i>
+                                    {% else %}
+                                        <i class="bi bi-bell text-secondary"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <h6 class="mb-0 text-primary-dark {% if not n.is_read %}fw-bold{% endif %}">{{ n.title }}</h6>
+                                        {% if not n.is_read %}
+                                            <span class="badge bg-danger rounded-pill" style="font-size: 0.65rem;">جديد</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="text-muted small mb-0 mt-1">{{ n.message }}</p>
+                                </div>
+                            </div>
+                            <div class="text-muted small text-nowrap ms-2">
+                                {{ n.created_at|date:"Y-m-d H:i" }}
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-bell-slash empty-state-icon"></i>
+                    <h6>لا توجد أي إشعارات حتى الآن</h6>
+                    <p class="text-muted small">ستظهر هنا التنبيهات المتعلقة بجلساتك ورسائلك وحلقاتك القرآنية.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

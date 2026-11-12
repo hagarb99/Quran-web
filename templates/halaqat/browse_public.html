@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}استكشاف الحلقات العامة - منصة حلقات{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row align-items-center mb-4">
+        <div class="col-md-7">
+            <h3 class="fw-bold text-primary-dark mb-1">
+                <i class="bi bi-compass text-gold me-2"></i> استكشاف الحلقات العامة
+            </h3>
+            <p class="text-muted small mb-0">تصفح الحلقات القرآنية العامة المفتوحة واطلب الانضمام للمتابعة مع المعلمين</p>
+        </div>
+        <div class="col-md-5 mt-3 mt-md-0">
+            <form method="get" class="d-flex gap-2">
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="ابحث باسم الحلقة أو الوصف...">
+                <button type="submit" class="btn btn-primary-custom px-3">
+                    <i class="bi bi-search"></i>
+                </button>
+                {% if query %}
+                    <a href="{% url 'halaqat:browse_public' %}" class="btn btn-outline-secondary">إلغاء</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    {% if user.is_authenticated and user.role == 'STUDENT' %}
+        <div class="alert alert-info py-2 small mb-4">
+            <i class="bi bi-info-circle me-1"></i>
+            يتم عرض الحلقات المطابقة لجنسك (<strong>{{ user.get_gender_display }}</strong>) التزاماً بالضوابط الشرعية المعتمدة.
+        </div>
+    {% endif %}
+
+    {% if halaqat %}
+        <div class="row g-3">
+            {% for h in halaqat %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card card-custom h-100 d-flex flex-column">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge badge-primary-custom">{{ h.get_gender_display }}</span>
+                                <span class="badge badge-gold"><i class="bi bi-person-fill"></i> {{ h.owner.display_name }}</span>
+                            </div>
+                            <h5 class="card-title fw-bold text-primary-dark mb-2">
+                                {{ h.name }}
+                            </h5>
+                            <p class="card-text text-muted small flex-grow-1 mb-3">
+                                {{ h.description|truncatewords:22|default:"لا يوجد وصف لهذه الحلقة." }}
+                            </p>
+                            
+                            <!-- Schedules snippet -->
+                            <div class="mb-3 small">
+                                <div class="fw-semibold text-muted mb-1"><i class="bi bi-clock me-1"></i> المواعيد:</div>
+                                {% if h.schedules.all %}
+                                    <ul class="list-unstyled mb-0 text-muted ps-1">
+                                        {% for sc in h.schedules.all|slice:":2" %}
+                                            <li>• {{ sc.get_day_of_week_display }}: {{ sc.start_time|time:"H:i" }} - {{ sc.end_time|time:"H:i" }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <span class="text-muted fst-italic">المواعيد تحدد أسبوعياً</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center text-muted small pt-2 border-top">
+                                <span><i class="bi bi-people me-1"></i> {{ h.members.count }} عضو</span>
+                                <span><i class="bi bi-calendar-event me-1"></i> {{ h.sessions.count }} جلسة مسجلة</span>
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-light p-3 border-top-0">
+                            {% if user.is_authenticated %}
+                                {% if h.id in user_memberships %}
+                                    <a href="{% url 'halaqat:detail' h.id %}" class="btn btn-sm btn-outline-success w-100">
+                                        <i class="bi bi-check-circle me-1"></i> أنت عضو بالفعل (عرض الحلقة)
+                                    </a>
+                                {% elif h.id in user_pending_requests %}
+                                    <button class="btn btn-sm btn-secondary w-100" disabled>
+                                        <i class="bi bi-hourglass-split me-1"></i> طلب الانضمام قيد المراجعة
+                                    </button>
+                                {% else %}
+                                    <a href="{% url 'halaqat:request_join' h.id %}" class="btn btn-sm btn-gold-custom w-100">
+                                        <i class="bi bi-send-plus me-1"></i> تقديم طلب انضمام
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <a href="{% url 'accounts:login' %}?next={% url 'halaqat:browse_public' %}" class="btn btn-sm btn-outline-custom w-100">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i> سجل دخولك للانضمام
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card card-custom p-5 text-center">
+            <i class="bi bi-search empty-state-icon"></i>
+            <h5 class="fw-bold text-primary-dark">لم يتم العثور على حلقات تطابق بحثك</h5>
+            <p class="text-muted small">يرجى التأكد من كلمات البحث أو العودة لاحقاً لاستكشاف الحلقات الجديدة.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

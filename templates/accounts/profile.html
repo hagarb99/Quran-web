@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}الملف الشخصي - {{ user_obj.display_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar profile card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card card-custom text-center p-4">
+                <div class="avatar-circle avatar-circle-lg mx-auto mb-3">
+                    {% if user_obj.avatar %}
+                        <img src="{{ user_obj.avatar.url }}" alt="{{ user_obj.display_name }}">
+                    {% else %}
+                        <span>{{ user_obj.display_name|slice:":1" }}</span>
+                    {% endif %}
+                </div>
+                <h4 class="fw-bold mb-1 text-primary-dark">{{ user_obj.display_name }}</h4>
+                <div class="mb-2">
+                    <span class="badge badge-gold">{{ user_obj.get_role_display }}</span>
+                    <span class="badge badge-primary-custom">{{ user_obj.get_gender_display }}</span>
+                </div>
+                <p class="text-muted small mb-3">
+                    <i class="bi bi-calendar3 me-1"></i> انضم في {{ user_obj.date_joined|date:"d M Y" }}
+                </p>
+                {% if user_obj.bio %}
+                    <div class="p-3 bg-light rounded text-start small border">
+                        <span class="fw-bold d-block mb-1 text-primary-dark">نبذة:</span>
+                        {{ user_obj.bio|linebreaks }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Edit Form -->
+        <div class="col-lg-8">
+            <div class="card card-custom">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-pencil-square me-2"></i> تعديل بيانات الحساب</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_first_name" class="form-label fw-semibold">الاسم الأول</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_last_name" class="form-label fw-semibold">اسم العائلة</label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_email" class="form-label fw-semibold">البريد الإلكتروني</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_phone" class="form-label fw-semibold">رقم الهاتف</label>
+                                {{ form.phone }}
+                                {% if form.phone.errors %}
+                                    <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_avatar" class="form-label fw-semibold">تغيير الصورة الشخصية</label>
+                            {{ form.avatar }}
+                            {% if form.avatar.errors %}
+                                <div class="text-danger small mt-1">{{ form.avatar.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="id_bio" class="form-label fw-semibold">النبذة الشخصية</label>
+                            {{ form.bio }}
+                            {% if form.bio.errors %}
+                                <div class="text-danger small mt-1">{{ form.bio.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary-custom px-4">
+                            <i class="bi bi-save me-2"></i> حفظ التغييرات
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

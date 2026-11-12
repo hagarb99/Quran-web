@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+
+{% block title %}محادثة: {{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+    <div class="mb-2">
+        <a href="{% url 'chat:conversations_list' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-right me-1"></i> العودة لقائمة المحادثات
+        </a>
+    </div>
+
+    <div class="chat-container">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <div class="d-flex align-items-center gap-2">
+                <div class="avatar-circle avatar-circle-sm bg-white text-dark">
+                    <i class="bi {% if conversation.chat_type == 'GROUP' %}bi-people-fill text-primary-dark{% else %}bi-person-fill text-primary-dark{% endif %}"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold">{{ title }}</h5>
+                    <div class="small opacity-75">
+                        {% if conversation.chat_type == 'GROUP' %}
+                            محادثة حلقة جماعية &bull; {{ conversation.halaqa.members.count }} عضو
+                        {% else %}
+                            محادثة خاصة ومباشرة
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if conversation.chat_type == 'GROUP' and conversation.halaqa %}
+                <a href="{% url 'halaqat:detail' conversation.halaqa.id %}" class="btn btn-sm btn-outline-light">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> صفحة الحلقة
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- Chat Messages Window -->
+        <div class="chat-messages" id="chatMessages">
+            <!-- Load More Older Messages Button -->
+            <div class="text-center my-2" id="loadMoreContainer">
+                <button type="button" class="btn btn-sm btn-light border text-muted" id="btnLoadMore">
+                    <i class="bi bi-arrow-up-circle me-1"></i> تحميل رسائل أقدم
+                </button>
+            </div>
+
+            <!-- Messages Stream -->
+            <div id="messagesList" class="d-flex flex-column gap-2">
+                {% for msg in initial_messages %}
+                    <div class="message-bubble {% if msg.sender == user %}outgoing{% else %}incoming{% endif %}" data-message-id="{{ msg.id }}">
+                        {% if msg.sender != user %}
+                            <div class="message-sender-name">{{ msg.sender.display_name }}</div>
+                        {% endif %}
+                        <div class="message-text">{{ msg.content|linebreaksbr }}</div>
+                        <div class="message-meta">
+                            <span>{{ msg.created_at|date:"H:i" }}</span>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-state py-4" id="emptyStateMsg">
+                        <i class="bi bi-chat-dots empty-state-icon fs-2"></i>
+                        <p class="text-muted small mb-0">لا توجد رسائل سابقة. كن أول من يبدأ بالسلام!</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Chat Input Bar -->
+        <form id="chatForm" class="chat-input-bar">
+            {% csrf_token %}
+            <input type="text" id="chatInput" class="chat-input-field" placeholder="اكتب رسالتك هنا واضغط Enter للإرسال..." autocomplete="off">
+            <button type="submit" class="btn btn-gold-custom px-4 rounded-pill" id="btnSend">
+                <i class="bi bi-send-fill me-1"></i> إرسال
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const conversationId = {{ conversation.id }};
+    const messagesContainer = document.getElementById('chatMessages');
+    const messagesList = document.getElementById('messagesList');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const btnSend = document.getElementById('btnSend');
+    const btnLoadMore = document.getElementById('btnLoadMore');
+    const emptyStateMsg = document.getElementById('emptyStateMsg');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    let oldestMessageId = {{ oldest_id|default:0 }};
+    let latestMessageId = {{ latest_id|default:0 }};
+    let isPolling = false;
+    let pollInterval = null;
+
+    // Scroll to bottom of message view
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    scrollToBottom();
+
+    // Helper: append a message to the UI
+    function renderMessage(msg, isPrepend = false) {
+        if (emptyStateMsg) {
+            emptyStateMsg.style.display = 'none';
+        }
+
+        const bubble = document.createElement('div');
+        bubble.className = `message-bubble ${msg.is_me ? 'outgoing' : 'incoming'}`;
+        bubble.setAttribute('data-message-id', msg.id);
+
+        let senderHtml = '';
+        if (!msg.is_me) {
+            senderHtml = `<div class="message-sender-name">${escapeHtml(msg.sender_name)}</div>`;
+        }
+
+        // Clean linebreaks for text
+        const contentHtml = escapeHtml(msg.content).replace(/\n/g, '<br>');
+
+        bubble.innerHTML = `
+            ${senderHtml}
+            <div class="message-text">${contentHtml}</div>
+            <div class="message-meta">
+                <span>${msg.created_at}</span>
+            </div>
+        `;
+
+        if (isPrepend) {
+            messagesList.prepend(bubble);
+        } else {
+            messagesList.appendChild(bubble);
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.innerText = text;
+        return div.innerHTML;
+    }
+
+    // Polling function: fetch only messages newer than latestMessageId
+    async function pollNewMessages() {
+        if (isPolling || document.hidden) return;
+
+        isPolling = true;
+        try {
+            const url = `{% url 'chat:poll_messages' conversation.id %}?after=${latestMessageId}`;
+            const response = await fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.messages && data.messages.length > 0) {
+                    let shouldScroll = (messagesContainer.scrollTop + messagesContainer.clientHeight >= messagesContainer.scrollHeight - 60);
+                    data.messages.forEach(msg => {
+                        // Avoid duplicates if already rendered
+                        if (!document.querySelector(`[data-message-id="${msg.id}"]`)) {
+                            renderMessage(msg, false);
+                            if (msg.id > latestMessageId) {
+                                latestMessageId = msg.id;
+                            }
+                            if (oldestMessageId === 0) {
+                                oldestMessageId = msg.id;
+                            }
+                        }
+                    });
+                    if (shouldScroll) {
+                        scrollToBottom();
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Polling error:', err);
+        } finally {
+            isPolling = false;
+        }
+    }
+
+    // Start 3-second polling
+    function startPolling() {
+        if (!pollInterval) {
+            pollInterval = setInterval(pollNewMessages, 3000);
+        }
+    }
+
+    function stopPolling() {
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+    }
+
+    // Stop polling if user switches tabs, resume when active
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopPolling();
+        } else {
+            pollNewMessages();
+            startPolling();
+        }
+    });
+
+    // Clean up timer on window unload
+    window.addEventListener('beforeunload', () => {
+        stopPolling();
+    });
+
+    startPolling();
+
+    // Send Message Form Submit
+    chatForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const content = chatInput.value.trim();
+        if (!content) return;
+
+        chatInput.disabled = true;
+        btnSend.disabled = true;
+
+        try {
+            const formData = new FormData();
+            formData.append('content', content);
+
+            const response = await fetch(`{% url 'chat:send_message' conversation.id %}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                if (result.status === 'success') {
+                    chatInput.value = '';
+                    renderMessage(result.message, false);
+                    if (result.message.id > latestMessageId) {
+                        latestMessageId = result.message.id;
+                    }
+                    if (oldestMessageId === 0) {
+                        oldestMessageId = result.message.id;
+                    }
+                    scrollToBottom();
+                }
+            } else {
+                const errorData = await response.json();
+                alert(errorData.error || 'تعذر إرسال الرسالة.');
+            }
+        } catch (err) {
+            console.error('Send error:', err);
+            alert('حدث خطأ أثناء إرسال الرسالة.');
+        } finally {
+            chatInput.disabled = false;
+            btnSend.disabled = false;
+            chatInput.focus();
+        }
+    });
+
+    // Load Older Messages
+    btnLoadMore.addEventListener('click', async function() {
+        if (oldestMessageId <= 1) {
+            btnLoadMore.disabled = true;
+            btnLoadMore.innerText = 'وصلت إلى بداية المحادثة';
+            return;
+        }
+
+        btnLoadMore.disabled = true;
+        btnLoadMore.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> جاري التحميل...';
+
+        try {
+            const url = `{% url 'chat:history_messages' conversation.id %}?before=${oldestMessageId}`;
+            const response = await fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.messages && data.messages.length > 0) {
+                    const prevScrollHeight = messagesContainer.scrollHeight;
+                    // Prepend in reverse so order stays chronological
+                    data.messages.reverse().forEach(msg => {
+                        if (!document.querySelector(`[data-message-id="${msg.id}"]`)) {
+                            renderMessage(msg, true);
+                            if (msg.id < oldestMessageId || oldestMessageId === 0) {
+                                oldestMessageId = msg.id;
+                            }
+                        }
+                    });
+                    // Preserve scroll position
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight - prevScrollHeight;
+                    btnLoadMore.disabled = false;
+                    btnLoadMore.innerHTML = '<i class="bi bi-arrow-up-circle me-1"></i> تحميل رسائل أقدم';
+                } else {
+                    btnLoadMore.disabled = true;
+                    btnLoadMore.innerText = 'وصلت إلى بداية المحادثة';
+                }
+            }
+        } catch (err) {
+            console.error('History load error:', err);
+            btnLoadMore.disabled = false;
+            btnLoadMore.innerHTML = '<i class="bi bi-arrow-up-circle me-1"></i> إعادة المحاولة';
+        }
+    });
+});
+</script>
+{% endblock %}
+

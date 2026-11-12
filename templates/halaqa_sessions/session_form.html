@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_edit %}تعديل الجلسة{% else %}إنشاء جلسة جديدة{% endif %} - {{ halaqa.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card card-custom">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-calendar-plus text-gold me-2"></i>
+                        {% if is_edit %}تعديل الجلسة: {{ session.title }}{% else %}جدولة جلسة قرآنية جديدة{% endif %}
+                    </h5>
+                    <a href="{% if is_edit %}{% url 'halaqa_sessions:detail' session.id %}{% else %}{% url 'halaqat:detail' halaqa.id %}{% endif %}" class="btn btn-sm btn-outline-secondary">إلغاء</a>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">عنوان أو موضوع الجلسة <span class="text-danger">*</span></label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">تاريخ الانعقاد <span class="text-danger">*</span></label>
+                                {{ form.date }}
+                                {% if form.date.errors %}
+                                    <div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">وقت البدء <span class="text-danger">*</span></label>
+                                {{ form.start_time }}
+                                {% if form.start_time.errors %}
+                                    <div class="text-danger small mt-1">{{ form.start_time.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">وقت الانتهاء (اختياري)</label>
+                                {{ form.end_time }}
+                                {% if form.end_time.errors %}
+                                    <div class="text-danger small mt-1">{{ form.end_time.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">رابط الاجتماع الافتراضي Google Meet (اختياري)</label>
+                            {{ form.meet_url }}
+                            <div class="form-text small">في حال كانت الجلسة عن بعد، ضع رابط اجتماع Google Meet هنا ليتمكن الطلاب من الدخول مباشرة.</div>
+                            {% if form.meet_url.errors %}
+                                <div class="text-danger small mt-1">{{ form.meet_url.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">ملاحظات أو توجيهات الجلسة</label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="text-danger small mt-1">{{ form.notes.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-gold-custom px-4">
+                                <i class="bi bi-save me-1"></i> {% if is_edit %}حفظ التعديلات{% else %}جدولة الجلسة{% endif %}
+                            </button>
+                            <a href="{% if is_edit %}{% url 'halaqa_sessions:detail' session.id %}{% else %}{% url 'halaqat:detail' halaqa.id %}{% endif %}" class="btn btn-outline-secondary">إلغاء</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}حلقاتي القرآنية - منصة حلقات{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold text-primary-dark mb-1">
+                <i class="bi bi-collection-play text-gold me-2"></i> حلقاتي القرآنية
+            </h3>
+            <p class="text-muted small mb-0">جميع الحلقات التي تشرف عليها أو مسجل بها كطالب</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'halaqat:create' %}" class="btn btn-gold-custom">
+                <i class="bi bi-plus-circle me-1"></i> إنشاء حلقة جديدة
+            </a>
+            <a href="{% url 'halaqat:browse_public' %}" class="btn btn-outline-custom">
+                <i class="bi bi-search me-1"></i> استكشاف الحلقات العامة
+            </a>
+        </div>
+    </div>
+
+    <!-- Teaching / Supervising Section -->
+    <div class="mb-5">
+        <h5 class="fw-bold text-primary-dark mb-3 pb-2 border-bottom">
+            <i class="bi bi-person-workspace text-gold me-2"></i> حلقات أقوم بإدارتها أو تعليمها ({{ teaching_memberships.count }})
+        </h5>
+        
+        {% if teaching_memberships %}
+            <div class="row g-3">
+                {% for mem in teaching_memberships %}
+                    {% with h=mem.halaqa %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card card-custom h-100 d-flex flex-column">
+                                <div class="card-body p-4 d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="badge badge-gold">{{ mem.get_role_display }}</span>
+                                        <span class="badge {% if h.visibility == 'PUBLIC' %}badge-success-custom{% else %}badge-primary-custom{% endif %}">
+                                            {{ h.get_visibility_display }}
+                                        </span>
+                                    </div>
+                                    <h5 class="card-title fw-bold text-primary-dark mb-2">
+                                        <a href="{% url 'halaqat:detail' h.id %}" class="text-decoration-none text-primary-dark">
+                                            {{ h.name }}
+                                        </a>
+                                    </h5>
+                                    <p class="card-text text-muted small flex-grow-1 mb-3">
+                                        {{ h.description|truncatewords:18|default:"لا يوجد وصف لهذه الحلقة." }}
+                                    </p>
+                                    <div class="d-flex justify-content-between align-items-center text-muted small pt-2 border-top">
+                                        <span><i class="bi bi-people me-1"></i> {{ h.members.count }} عضو</span>
+                                        <span><i class="bi bi-gender-ambiguous me-1"></i> {{ h.get_gender_display }}</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-light p-3 border-top-0 d-flex gap-2">
+                                    <a href="{% url 'halaqat:detail' h.id %}" class="btn btn-sm btn-primary-custom flex-grow-1">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> لوحة الحلقة
+                                    </a>
+                                    {% if h.chat_room %}
+                                        <a href="{% url 'chat:conversation_detail' h.chat_room.id %}" class="btn btn-sm btn-outline-secondary" title="محادثة الحلقة">
+                                            <i class="bi bi-chat-text"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endwith %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card card-custom p-4 text-center">
+                <p class="text-muted mb-0">لا توجد لديك حلقات تقوم بإدارتها حالياً. يمكنك إنشاء حلقة جديدة الآن للبدء.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Student Enrolled Section -->
+    <div>
+        <h5 class="fw-bold text-primary-dark mb-3 pb-2 border-bottom">
+            <i class="bi bi-mortarboard text-gold me-2"></i> حلقات أدرس بها كطالب ({{ learning_memberships.count }})
+        </h5>
+        
+        {% if learning_memberships %}
+            <div class="row g-3">
+                {% for mem in learning_memberships %}
+                    {% with h=mem.halaqa %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card card-custom h-100 d-flex flex-column">
+                                <div class="card-body p-4 d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="badge bg-secondary">طالب</span>
+                                        <span class="badge badge-primary-custom">{{ h.get_gender_display }}</span>
+                                    </div>
+                                    <h5 class="card-title fw-bold text-primary-dark mb-2">
+                                        <a href="{% url 'halaqat:detail' h.id %}" class="text-decoration-none text-primary-dark">
+                                            {{ h.name }}
+                                        </a>
+                                    </h5>
+                                    <p class="card-text text-muted small flex-grow-1 mb-3">
+                                        {{ h.description|truncatewords:18|default:"لا يوجد وصف لهذه الحلقة." }}
+                                    </p>
+                                    <div class="d-flex justify-content-between align-items-center text-muted small pt-2 border-top">
+                                        <span><i class="bi bi-person-badge me-1"></i> المعلم: {{ h.owner.display_name }}</span>
+                                        <span><i class="bi bi-calendar-event me-1"></i> {{ h.sessions.count }} جلسة</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-light p-3 border-top-0 d-flex gap-2">
+                                    <a href="{% url 'halaqat:detail' h.id %}" class="btn btn-sm btn-primary-custom flex-grow-1">
+                                        <i class="bi bi-eye me-1"></i> عرض الحلقة والمواعيد
+                                    </a>
+                                    {% if h.chat_room %}
+                                        <a href="{% url 'chat:conversation_detail' h.chat_room.id %}" class="btn btn-sm btn-outline-secondary" title="محادثة الحلقة">
+                                            <i class="bi bi-chat-text"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endwith %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card card-custom p-4 text-center">
+                <p class="text-muted mb-2">لست مسجلاً كطالب في أي حلقة بعد.</p>
+                <div>
+                    <a href="{% url 'halaqat:browse_public' %}" class="btn btn-sm btn-gold-custom">
+                        <i class="bi bi-compass me-1"></i> استكشاف الحلقات المتاحة والانضمام
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
