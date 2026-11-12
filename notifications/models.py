@@ -4,6 +4,7 @@ from django.conf import settings
 
 class Notification(models.Model):
     TYPE_SESSION_CREATED = 'SESSION_CREATED'
+    TYPE_SESSION_STARTED = 'SESSION_STARTED'
     TYPE_SESSION_UPDATED = 'SESSION_UPDATED'
     TYPE_SESSION_CANCELLED = 'SESSION_CANCELLED'
     TYPE_CHAT_MESSAGE = 'CHAT_MESSAGE'
@@ -13,6 +14,7 @@ class Notification(models.Model):
 
     TYPE_CHOICES = [
         (TYPE_SESSION_CREATED, 'جلسة جديدة'),
+        (TYPE_SESSION_STARTED, 'بدء الجلسة الآن'),
         (TYPE_SESSION_UPDATED, 'تعديل موعد الجلسة'),
         (TYPE_SESSION_CANCELLED, 'إلغاء جلسة'),
         (TYPE_CHAT_MESSAGE, 'رسالة محادثة جديدة'),

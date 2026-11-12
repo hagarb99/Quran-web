@@ -29,7 +29,9 @@
                         <a href="{% url 'notifications:read_and_redirect' n.id %}" class="list-group-item list-group-item-action p-3 d-flex align-items-center justify-content-between border-bottom {% if not n.is_read %}bg-light fw-semibold{% endif %}">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="avatar-circle avatar-circle-sm {% if not n.is_read %}bg-warning-subtle text-dark{% else %}bg-light text-muted{% endif %}">
-                                    {% if n.notification_type == 'SESSION_CREATED' %}
+                                    {% if n.notification_type == 'SESSION_STARTED' %}
+                                        <i class="bi bi-broadcast text-danger"></i>
+                                    {% elif n.notification_type == 'SESSION_CREATED' %}
                                         <i class="bi bi-calendar-plus text-primary-dark"></i>
                                     {% elif n.notification_type == 'SESSION_UPDATED' %}
                                         <i class="bi bi-clock-history text-warning"></i>

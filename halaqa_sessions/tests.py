@@ -88,3 +88,40 @@ class SessionLifecycleAndBusinessRulesTests(TestCase):
         self.assertEqual(Session.all_objects.count(), 1)
         self.assertTrue(session.is_deleted)
         self.assertEqual(session.deleted_by, self.teacher)
+
+    def test_start_session_notifies_students(self):
+        """Verify that starting a session sends live notifications to enrolled students."""
+        from notifications.models import Notification
+        student = User.objects.create_user(
+            username='student_notify',
+            email='sn@example.com',
+            phone='0577777777',
+            password='Password123!',
+            gender=User.GENDER_MALE,
+            role=User.ROLE_STUDENT,
+            first_name='حمزة'
+        )
+        HalaqaMember.objects.create(halaqa=self.halaqa, user=student, role=HalaqaMember.ROLE_STUDENT)
+
+        session = Session.objects.create(
+            halaqa=self.halaqa,
+            title='جلسة الفجر المباشرة',
+            date=timezone.now().date(),
+            start_time=time(5, 30),
+            meet_url='https://meet.google.com/abc-defg-hij',
+            created_by=self.teacher
+        )
+
+        self.client.login(username='teacher_session', password='Password123!')
+        url = reverse('halaqa_sessions:action', kwargs={'pk': session.id, 'action': 'start'})
+        response = self.client.get(url, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        session.refresh_from_db()
+        self.assertEqual(session.status, Session.STATUS_IN_PROGRESS)
+
+        # Student must have received the live start notification
+        notif = Notification.objects.filter(recipient=student, notification_type=Notification.TYPE_SESSION_STARTED).first()
+        self.assertIsNotNone(notif)
+        self.assertIn('بدأت الجلسة الآن', notif.title)
+        self.assertIn('Google Meet', notif.message)

@@ -155,7 +155,21 @@ def session_action_view(request, pk, action):
         session.status = Session.STATUS_IN_PROGRESS
         session.updated_by = request.user
         session.save()
-        messages.success(request, f"بدأت الجلسة '{session.title}' الآن (حالة جارية).")
+
+        # Notify all halaqa members (students, assistants, etc.)
+        for member in halaqa.members.select_related('user').all():
+            if member.user != request.user:
+                meet_msg = " ورابط Google Meet متاح الآن داخل الجلسة." if session.meet_url else "."
+                notify_user(
+                    recipient=member.user,
+                    actor=request.user,
+                    title=f"بدأت الجلسة الآن: {session.title} 🔴",
+                    message=f"بدأ المعلم {request.user.display_name} جلسة '{session.title}' في حلقة '{halaqa.name}'{meet_msg}",
+                    link=f"/sessions/{session.id}/",
+                    notification_type=Notification.TYPE_SESSION_STARTED
+                )
+
+        messages.success(request, f"بدأت الجلسة '{session.title}' الآن (حالة جارية)، وتم إرسال تنبيه مباشر لجميع الطلاب.")
 
     elif action == 'complete':
         try:
