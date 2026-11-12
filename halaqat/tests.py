@@ -156,3 +156,29 @@ class HalaqatBusinessRulesTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'سجل المتابعة')
 
+    def test_student_cannot_view_other_student_progress_sheet(self):
+        """Privacy Rule: A student cannot view another student's progress sheet or see their button."""
+        student_other = User.objects.create_user(
+            username='student_other',
+            email='so@example.com',
+            phone='0599999999',
+            password='Password123!',
+            gender=User.GENDER_MALE,
+            role=User.ROLE_STUDENT,
+            first_name='علي'
+        )
+        HalaqaMember.objects.create(halaqa=self.halaqa_male, user=self.student_male, role=HalaqaMember.ROLE_STUDENT)
+        HalaqaMember.objects.create(halaqa=self.halaqa_male, user=student_other, role=HalaqaMember.ROLE_STUDENT)
+
+        # 1. Direct URL access must be blocked
+        self.client.login(username='student_other', password='Password123!')
+        url = reverse('halaqat:student_progress', kwargs={'pk': self.halaqa_male.id, 'student_id': self.student_male.id})
+        response = self.client.get(url, follow=True)
+        self.assertRedirects(response, reverse('halaqat:detail', kwargs={'pk': self.halaqa_male.id}))
+        self.assertContains(response, 'صلاحية')
+
+        # 2. Frontend button privacy: student_other should NOT see student_male's notebook button
+        detail_res = self.client.get(reverse('halaqat:detail', kwargs={'pk': self.halaqa_male.id}))
+        self.assertNotContains(detail_res, f"/halaqat/{self.halaqa_male.id}/students/{self.student_male.id}/progress/")
+        self.assertContains(detail_res, f"/halaqat/{self.halaqa_male.id}/students/{student_other.id}/progress/")
+

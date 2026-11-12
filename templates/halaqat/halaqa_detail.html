@@ -249,9 +249,11 @@
                                         <td class="small text-muted">{{ m.joined_at|date:"Y-m-d" }}</td>
                                         <td class="text-end">
                                             {% if m.role == 'STUDENT' %}
-                                                <a href="{% url 'halaqat:student_progress' halaqa.id m.user.id %}" class="btn btn-sm btn-success me-1 shadow-sm">
-                                                    <i class="bi bi-journal-bookmark-fill me-1"></i> دفتر التسميع والمتابعة
-                                                </a>
+                                                {% if can_manage or user == m.user %}
+                                                    <a href="{% url 'halaqat:student_progress' halaqa.id m.user.id %}" class="btn btn-sm btn-primary-custom me-1">
+                                                        <i class="bi bi-journal-bookmark-fill me-1"></i> دفتر التسميع والمتابعة
+                                                    </a>
+                                                {% endif %}
                                             {% endif %}
                                             {% if user != m.user and user.is_authenticated %}
                                                 <a href="{% url 'chat:start_direct' m.user.id %}" class="btn btn-sm btn-outline-secondary" title="محادثة خاصة">

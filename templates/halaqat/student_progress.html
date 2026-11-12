@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}دفتر التسميع وسجل المتابعة: {{ student.display_name }} - {{ halaqa.name }}{% endblock %}
+{% block title %}دفتر التسميع والمتابعة: {{ student.display_name }} - {{ halaqa.name }}{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -8,37 +8,37 @@
         background-color: rgba(16, 185, 129, 0.06);
         border: 1px solid rgba(16, 185, 129, 0.25);
         border-right: 4px solid #10B981 !important;
-        border-radius: 10px;
+        border-radius: var(--radius-md);
     }
     .card-recitation-near {
         background-color: rgba(14, 165, 233, 0.06);
         border: 1px solid rgba(14, 165, 233, 0.25);
         border-right: 4px solid #0EA5E9 !important;
-        border-radius: 10px;
+        border-radius: var(--radius-md);
     }
     .card-recitation-far {
         background-color: rgba(139, 92, 246, 0.06);
         border: 1px solid rgba(139, 92, 246, 0.25);
         border-right: 4px solid #8B5CF6 !important;
-        border-radius: 10px;
+        border-radius: var(--radius-md);
     }
     .card-recitation-next {
-        background-color: rgba(212, 175, 55, 0.08);
-        border: 1px solid rgba(212, 175, 55, 0.35);
-        border-right: 4px solid #D4AF37 !important;
-        border-radius: 10px;
+        background-color: rgba(217, 119, 6, 0.06);
+        border: 1px solid rgba(217, 119, 6, 0.3);
+        border-right: 4px solid var(--gold) !important;
+        border-radius: var(--radius-md);
     }
     .timeline-session-header {
-        background-color: #F8FAF9;
-        border-bottom: 1px solid #E5E7EB;
-        padding: 12px 16px;
+        background-color: #FAFBFD;
+        border-bottom: 1px solid var(--border-subtle);
+        padding: 14px 18px;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <!-- Breadcrumb & Actions Bar -->
+    <!-- Breadcrumb & Top Bar -->
     <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
         <a href="{% url 'halaqat:detail' halaqa.id %}" class="btn btn-sm btn-outline-secondary">
             <i class="bi bi-arrow-right me-1"></i> العودة لحلقة: {{ halaqa.name }}
@@ -46,14 +46,15 @@
         <div class="d-flex gap-2">
             {% if user != student and user.is_authenticated %}
                 <a href="{% url 'chat:start_direct' student.id %}" class="btn btn-sm btn-outline-custom">
-                    <i class="bi bi-chat-text-fill me-1"></i> محادثة خاصة
+                    <i class="bi bi-chat-text-fill me-1"></i> محادثة خاصة مع الطالب
                 </a>
             {% endif %}
         </div>
     </div>
 
-    <!-- Student Profile Header Card -->
-    <div class="card card-custom mb-4">
+    <!-- Unified Student Notebook Header -->
+    <div class="card card-custom mb-4 shadow-sm">
+        <div class="card-halaqa-top-bar gold"></div>
         <div class="card-body p-4">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div class="d-flex align-items-center gap-3">
@@ -67,34 +68,35 @@
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <h3 class="fw-bold text-primary-dark mb-0">{{ student.display_name }}</h3>
-                            <span class="badge bg-secondary">طالب</span>
+                            <span class="badge badge-gold">طالب</span>
                             <span class="badge badge-primary-custom">{{ student.get_gender_display }}</span>
                         </div>
                         <div class="text-muted small">
-                            <span><i class="bi bi-book-half me-1"></i> حلقة: <strong>{{ halaqa.name }}</strong></span>
+                            <span><i class="bi bi-book-half text-gold me-1"></i> حلقة: <strong>{{ halaqa.name }}</strong></span>
                             <span class="mx-2">&bull;</span>
-                            <span><i class="bi bi-telephone me-1"></i> {{ student.phone }}</span>
+                            <span><i class="bi bi-telephone text-gold me-1"></i> {{ student.phone }}</span>
                             <span class="mx-2">&bull;</span>
-                            <span><i class="bi bi-envelope me-1"></i> {{ student.email }}</span>
+                            <span><i class="bi bi-envelope text-gold me-1"></i> {{ student.email }}</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Next Assignment Highlight (مطابق للتطبيق السابق) -->
+                <!-- Active Homework Card -->
                 {% if latest_assignment or latest_rec %}
-                    <div class="p-3 card-recitation-next" style="max-width: 440px;">
-                        <div class="fw-bold text-dark small mb-1">
-                            <i class="bi bi-bookmark-star-fill text-gold me-1"></i> التكليف المطلوب للجلسة القادمة:
+                    <div class="p-3 card-recitation-next" style="min-width: 320px; max-width: 460px;">
+                        <div class="fw-bold text-dark small mb-2 d-flex align-items-center gap-1">
+                            <i class="bi bi-bookmark-star-fill text-gold"></i>
+                            <span>التكليف والواجب المطلوب للجلسة القادمة:</span>
                         </div>
                         <ul class="list-unstyled mb-0 small text-dark">
                             {% if latest_rec.next_memorization %}
-                                <li><strong>• الحفظ الجديد:</strong> {{ latest_rec.next_memorization }}</li>
+                                <li class="mb-1"><strong>• الحفظ الجديد:</strong> {{ latest_rec.next_memorization }}</li>
                             {% endif %}
                             {% if latest_rec.next_revision_near %}
-                                <li><strong>• المراجعة القريبة:</strong> {{ latest_rec.next_revision_near }}</li>
+                                <li class="mb-1"><strong>• المراجعة القريبة:</strong> {{ latest_rec.next_revision_near }}</li>
                             {% endif %}
                             {% if latest_rec.next_revision_far %}
-                                <li><strong>• المراجعة البعيدة:</strong> {{ latest_rec.next_revision_far }}</li>
+                                <li class="mb-1"><strong>• المراجعة البعيدة:</strong> {{ latest_rec.next_revision_far }}</li>
                             {% endif %}
                             {% if latest_rec.next_assignment_notes %}
                                 <li class="text-muted fst-italic"><strong>• توجيهات:</strong> {{ latest_rec.next_assignment_notes }}</li>
@@ -109,7 +111,7 @@
         </div>
     </div>
 
-    <!-- Quick Stats -->
+    <!-- Attendance and Overview Stats -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
             <div class="card card-custom p-3 text-center border-start border-4 border-success">
@@ -137,21 +139,21 @@
         </div>
     </div>
 
-    <!-- Teacher/Assistant Logging Form (مطابق تماماً لنموذج التطبيق السابق) -->
+    <!-- Teacher/Assistant Logging Section inside the Notebook -->
     {% if can_manage %}
-        <div class="card card-custom mb-5 border-gold shadow-sm">
+        <div class="card card-custom mb-5 shadow-sm">
             <div class="card-header-custom bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0 fw-bold text-primary-dark">
-                    <i class="bi bi-pencil-square text-gold me-2"></i> تدوين تسميع اليوم وتكليف الجلسة القادمة
+                    <i class="bi bi-pencil-square text-gold me-2"></i> تدوين جلسة اليوم وتكليف الجلسة القادمة
                 </h5>
-                <span class="badge badge-gold">خاص بالمعلمين والمشرفين</span>
+                <span class="badge badge-gold">خاص بالمعلم والمشرف</span>
             </div>
             <div class="card-body p-4">
                 {% if auto_fill.new_memorization or auto_fill.near_revision or auto_fill.far_revision %}
-                    <div class="alert alert-success py-2 small mb-4 d-flex align-items-center gap-2">
+                    <div class="alert alert-success py-2 small mb-4 d-flex align-items-center gap-2 rounded-3 border-0">
                         <i class="bi bi-magic fs-5 text-success"></i>
                         <div>
-                            <strong>تم الملء التلقائي:</strong> تم جلب مواضع الحفظ والمراجعة لليوم تلقائياً من الواجب المسجل للطالب في الجلسة السابقة لتوفير وقتك.
+                            <strong>تم التعبئة التلقائية:</strong> تم جلب مواضع الحفظ والمراجعة لليوم تلقائياً من الواجب المسجل للطالب في الجلسة السابقة لتوفير وقتك.
                         </div>
                     </div>
                 {% endif %}
@@ -162,7 +164,7 @@
                     <!-- Session & Attendance Select -->
                     <div class="row mb-4">
                         <div class="col-md-7 mb-3 mb-md-0">
-                            <label class="form-label fw-bold">الجلسة القرآنية <span class="text-danger">*</span></label>
+                            <label class="form-label">الجلسة القرآنية <span class="text-danger">*</span></label>
                             <select name="session_id" class="form-select" required>
                                 {% for s in sessions %}
                                     <option value="{{ s.id }}">{{ s.title }} &bull; ({{ s.date|date:"Y-m-d" }} - {{ s.start_time|time:"H:i" }})</option>
@@ -170,7 +172,7 @@
                             </select>
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label fw-bold">حالة الحضور اليوم <span class="text-danger">*</span></label>
+                            <label class="form-label">حالة الحضور اليوم <span class="text-danger">*</span></label>
                             <select name="attendance_status" class="form-select" required id="attendanceStatusSelect">
                                 <option value="PRESENT" selected>حاضر (تم التسميع)</option>
                                 <option value="ABSENT">غائب (لم يحضر)</option>
@@ -184,7 +186,7 @@
                         <!-- 1. الحفظ الجديد -->
                         <div class="card p-3 mb-3 card-recitation-memo">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-bold text-success"><i class="bi bi-book me-1"></i> 1. الحفظ الجديد (Recited Today - New Memorization)</span>
+                                <span class="fw-bold text-success"><i class="bi bi-book-fill me-1"></i> 1. الحفظ الجديد</span>
                                 <div class="col-md-4">
                                     <select name="memorization_rating" class="form-select form-select-sm">
                                         <option value="MUMTAZ">ممتاز ⭐⭐⭐⭐⭐</option>
@@ -208,7 +210,7 @@
                         <!-- 2. المراجعة القريبة -->
                         <div class="card p-3 mb-3 card-recitation-near">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-bold text-info"><i class="bi bi-arrow-repeat me-1"></i> 2. المراجعة القريبة (Near Revision)</span>
+                                <span class="fw-bold text-info"><i class="bi bi-arrow-repeat me-1"></i> 2. المراجعة القريبة</span>
                                 <div class="col-md-4">
                                     <select name="revision_near_rating" class="form-select form-select-sm">
                                         <option value="MUMTAZ">ممتاز ⭐⭐⭐⭐⭐</option>
@@ -232,7 +234,7 @@
                         <!-- 3. المراجعة البعيدة -->
                         <div class="card p-3 mb-3 card-recitation-far">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-bold" style="color: #8B5CF6;"><i class="bi bi-collection me-1"></i> 3. المراجعة البعيدة (Far Revision)</span>
+                                <span class="fw-bold" style="color: #8B5CF6;"><i class="bi bi-collection-fill me-1"></i> 3. المراجعة البعيدة</span>
                                 <div class="col-md-4">
                                     <select name="revision_far_rating" class="form-select form-select-sm">
                                         <option value="MUMTAZ">ممتاز ⭐⭐⭐⭐⭐</option>
@@ -256,7 +258,7 @@
                         <!-- 4. التكليف والواجب للجلسة القادمة -->
                         <div class="card p-3 mb-3 card-recitation-next">
                             <span class="fw-bold text-dark d-block mb-2">
-                                <i class="bi bi-calendar-check text-gold me-1"></i> 4. تكليف وواجب الجلسة القادمة (Next Session Assignment)
+                                <i class="bi bi-calendar-check-fill text-gold me-1"></i> 4. تكليف وواجب الجلسة القادمة
                             </span>
                             <div class="row g-2 mb-2">
                                 <div class="col-md-4">
@@ -279,24 +281,25 @@
 
                         <!-- 5. توجيهات عامة -->
                         <div class="mb-3">
-                            <label class="form-label fw-bold small text-muted">توجيهات عامة من المعلم للطالب:</label>
+                            <label class="form-label small text-muted">توجيهات عامة من المعلم للطالب:</label>
                             <input type="text" name="teacher_notes" class="form-control" placeholder="نصيحة عامة، توجيه خلقي، تشجيع وتحفيز...">
                         </div>
                     </div>
 
                     <button type="submit" class="btn btn-gold-custom px-4 py-2 fs-6">
-                        <i class="bi bi-check2-all me-1"></i> تسجيل التسميع والدرجات والتكليف القادم ✨
+                        <i class="bi bi-check2-all me-1"></i> حفظ التسميع والواجب في دفتر الطالب ✨
                     </button>
                 </form>
             </div>
         </div>
     {% endif %}
 
-    <!-- History Timeline Cards (دفتر التسميع الزمني المطابق للتطبيق الأصلي) -->
+    <!-- Historical Recitations in the Notebook (سجل المتابعة والتسميع) -->
     <div class="mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold text-primary-dark mb-0">
-                <i class="bi bi-journal-text text-gold me-2"></i> دفتر التسميع وسجل المتابعة الزمني
+            <h4 class="fw-bold text-primary-dark mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-journal-text text-gold"></i>
+                <span>سجل المتابعة والتسميع في الدفتر</span>
             </h4>
             <span class="badge badge-primary-custom">{{ progress_rows|length }} جلسة مسجلة</span>
         </div>
@@ -392,7 +395,7 @@
                                 {% if row.recitation.next_memorization or row.recitation.next_revision_near or row.recitation.next_revision_far or row.recitation.next_assignment %}
                                     <div class="p-3 card-recitation-next mt-2">
                                         <div class="fw-bold small text-dark mb-1">
-                                            <i class="bi bi-bookmark-check-fill text-gold me-1"></i> التكليف المعين للجلسة التالية:
+                                            <i class="bi bi-bookmark-check-fill text-gold me-1"></i> التكليف المعين في هذه الجلسة:
                                         </div>
                                         <div class="small">
                                             {% if row.recitation.next_memorization %}
@@ -437,7 +440,7 @@
             <div class="card card-custom p-5 text-center">
                 <i class="bi bi-journal-x empty-state-icon"></i>
                 <h5>لا توجد سجلات متابعة حتى الآن</h5>
-                <p class="text-muted small">عند بدء الجلسات وتدوين الحفظ والمراجعة ستظهر في دفتر التسميع الزمني هنا.</p>
+                <p class="text-muted small">عند بدء الجلسات وتدوين الحفظ والمراجعة ستظهر في دفتر التسميع هنا.</p>
             </div>
         {% endif %}
     </div>
