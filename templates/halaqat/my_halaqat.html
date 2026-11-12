@@ -4,31 +4,87 @@
 
 {% block content %}
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <div>
-            <h3 class="fw-bold text-primary-dark mb-1">
-                <i class="bi bi-collection-play text-gold me-2"></i> حلقاتي القرآنية
-            </h3>
-            <p class="text-muted small mb-0">جميع الحلقات التي تشرف عليها أو مسجل بها كطالب</p>
+
+    <!-- Hero Welcome Banner -->
+    <div class="welcome-hero">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-7">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill">
+                        <i class="bi bi-star-fill text-dark me-1"></i> {{ user.get_role_display }}
+                    </span>
+                    <span class="text-white-50 small">• مرحباً بك مجدداً</span>
+                </div>
+                <h2 class="fw-bold mb-1 text-white">
+                    السلام عليكم ورحمة الله، {{ user.display_name }}
+                </h2>
+                <p class="welcome-hero-quote mb-3">
+                    <i class="bi bi-quote"></i> خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ <i class="bi bi-quote"></i>
+                </p>
+                <div class="d-flex gap-2 flex-wrap">
+                    {% if user.role != 'STUDENT' or user.is_platform_admin %}
+                        <a href="{% url 'halaqat:create' %}" class="btn btn-gold-custom">
+                            <i class="bi bi-plus-circle-fill"></i> إنشاء حلقة جديدة
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'halaqat:browse_public' %}" class="btn btn-outline-light px-3 py-2 fw-bold" style="border-radius: var(--radius-md);">
+                        <i class="bi bi-compass"></i> استكشاف الحلقات العامة
+                    </a>
+                    {% if user.role == 'STUDENT' %}
+                        <a href="{% url 'accounts:my_progress' %}" class="btn btn-gold-custom">
+                            <i class="bi bi-journal-bookmark-fill"></i> سجلي القرآني
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-lg-5">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="stat-card-glass">
+                            <div class="stat-card-icon">
+                                <i class="bi bi-collection-play"></i>
+                            </div>
+                            <div>
+                                <div class="fs-4 fw-bold lh-1">{{ teaching_memberships.count|add:learning_memberships.count }}</div>
+                                <div class="small opacity-75">إجمالي الحلقات</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card-glass">
+                            <div class="stat-card-icon">
+                                <i class="bi bi-shield-check"></i>
+                            </div>
+                            <div>
+                                <div class="fs-4 fw-bold lh-1">{{ user.get_gender_display }}</div>
+                                <div class="small opacity-75">الجنس المسجل</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="d-flex gap-2">
-            {% if user.role != 'STUDENT' or user.is_platform_admin %}
-                <a href="{% url 'halaqat:create' %}" class="btn btn-gold-custom">
-                    <i class="bi bi-plus-circle me-1"></i> إنشاء حلقة جديدة
-                </a>
-            {% endif %}
-            <a href="{% url 'halaqat:browse_public' %}" class="btn btn-outline-custom">
-                <i class="bi bi-search me-1"></i> استكشاف الحلقات العامة
-            </a>
-        </div>
+    </div>
+
+    <!-- Section Title -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold text-primary-dark mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-grid-fill text-gold"></i>
+            <span>حلقاتي القرآنية</span>
+        </h4>
     </div>
 
     <!-- Teaching / Supervising Section -->
     {% if teaching_memberships or user.role != 'STUDENT' or user.is_platform_admin %}
     <div class="mb-5">
-        <h5 class="fw-bold text-primary-dark mb-3 pb-2 border-bottom">
-            <i class="bi bi-person-workspace text-gold me-2"></i> حلقات أقوم بإدارتها أو تعليمها ({{ teaching_memberships.count }})
-        </h5>
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-person-workspace text-gold fs-5"></i>
+                <h5 class="fw-bold text-primary-dark mb-0">حلقات أقوم بإدارتها أو تعليمها</h5>
+                <span class="badge bg-light text-dark border">{{ teaching_memberships.count }}</span>
+            </div>
+        </div>
         
         {% if teaching_memberships %}
             <div class="row g-3">
@@ -36,11 +92,18 @@
                     {% with h=mem.halaqa %}
                         <div class="col-md-6 col-lg-4">
                             <div class="card card-custom h-100 d-flex flex-column">
+                                <div class="card-halaqa-top-bar"></div>
                                 <div class="card-body p-4 d-flex flex-column">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <span class="badge badge-gold">{{ mem.get_role_display }}</span>
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <span class="badge badge-gold">
+                                            <i class="bi bi-award me-1"></i> {{ mem.get_role_display }}
+                                        </span>
                                         <span class="badge {% if h.visibility == 'PUBLIC' %}badge-success-custom{% else %}badge-primary-custom{% endif %}">
-                                            {{ h.get_visibility_display }}
+                                            {% if h.visibility == 'PUBLIC' %}
+                                                <i class="bi bi-globe me-1"></i> عامة
+                                            {% else %}
+                                                <i class="bi bi-lock-fill me-1"></i> خاصة
+                                            {% endif %}
                                         </span>
                                     </div>
                                     <h5 class="card-title fw-bold text-primary-dark mb-2">
@@ -49,20 +112,20 @@
                                         </a>
                                     </h5>
                                     <p class="card-text text-muted small flex-grow-1 mb-3">
-                                        {{ h.description|truncatewords:18|default:"لا يوجد وصف لهذه الحلقة." }}
+                                        {{ h.description|truncatewords:16|default:"لا يوجد وصف مضاف لهذه الحلقة." }}
                                     </p>
                                     <div class="d-flex justify-content-between align-items-center text-muted small pt-2 border-top">
-                                        <span><i class="bi bi-people me-1"></i> {{ h.members.count }} عضو</span>
-                                        <span><i class="bi bi-gender-ambiguous me-1"></i> {{ h.get_gender_display }}</span>
+                                        <span><i class="bi bi-people-fill text-gold me-1"></i> {{ h.members.count }} عضو</span>
+                                        <span><i class="bi bi-gender-ambiguous text-gold me-1"></i> {{ h.get_gender_display }}</span>
                                     </div>
                                 </div>
                                 <div class="card-footer bg-light p-3 border-top-0 d-flex gap-2">
                                     <a href="{% url 'halaqat:detail' h.id %}" class="btn btn-sm btn-primary-custom flex-grow-1">
-                                        <i class="bi bi-box-arrow-up-right me-1"></i> لوحة الحلقة
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> إدارة الحلقة
                                     </a>
                                     {% if h.chat_room %}
-                                        <a href="{% url 'chat:conversation_detail' h.chat_room.id %}" class="btn btn-sm btn-outline-secondary" title="محادثة الحلقة">
-                                            <i class="bi bi-chat-text"></i>
+                                        <a href="{% url 'chat:conversation_detail' h.chat_room.id %}" class="btn btn-sm btn-outline-custom" title="محادثة الحلقة">
+                                            <i class="bi bi-chat-text-fill"></i>
                                         </a>
                                     {% endif %}
                                 </div>
@@ -73,9 +136,13 @@
             </div>
         {% else %}
             <div class="card card-custom p-4 text-center">
-                <p class="text-muted mb-0">لا توجد لديك حلقات تقوم بإدارتها حالياً. يمكنك إنشاء حلقة جديدة الآن للبدء.</p>
-                <div class="mt-3">
-                    <a href="{% url 'halaqat:create' %}" class="btn btn-sm btn-gold-custom">
+                <div class="avatar-circle mx-auto mb-3" style="width: 54px; height: 54px; background: var(--primary-light);">
+                    <i class="bi bi-folder-plus text-primary fs-3"></i>
+                </div>
+                <h6 class="fw-bold text-primary-dark mb-1">لا توجد لديك حلقات تشرف عليها حالياً</h6>
+                <p class="text-muted small mb-3">يمكنك إنشاء أول حلقة قرآنية وإضافة الطلاب والبدء في إدارة الجلسات ومتابعة الحفظ.</p>
+                <div>
+                    <a href="{% url 'halaqat:create' %}" class="btn btn-gold-custom">
                         <i class="bi bi-plus-circle me-1"></i> إنشاء حلقة جديدة الآن
                     </a>
                 </div>
@@ -86,9 +153,13 @@
 
     <!-- Student Enrolled Section -->
     <div>
-        <h5 class="fw-bold text-primary-dark mb-3 pb-2 border-bottom">
-            <i class="bi bi-mortarboard text-gold me-2"></i> حلقات أدرس بها كطالب ({{ learning_memberships.count }})
-        </h5>
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-mortarboard text-gold fs-5"></i>
+                <h5 class="fw-bold text-primary-dark mb-0">حلقات أدرس بها كطالب</h5>
+                <span class="badge bg-light text-dark border">{{ learning_memberships.count }}</span>
+            </div>
+        </div>
         
         {% if learning_memberships %}
             <div class="row g-3">
@@ -96,9 +167,12 @@
                     {% with h=mem.halaqa %}
                         <div class="col-md-6 col-lg-4">
                             <div class="card card-custom h-100 d-flex flex-column">
+                                <div class="card-halaqa-top-bar gold"></div>
                                 <div class="card-body p-4 d-flex flex-column">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <span class="badge bg-secondary">طالب</span>
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <span class="badge badge-gold">
+                                            <i class="bi bi-person-fill me-1"></i> طالب
+                                        </span>
                                         <span class="badge badge-primary-custom">{{ h.get_gender_display }}</span>
                                     </div>
                                     <h5 class="card-title fw-bold text-primary-dark mb-2">
@@ -107,20 +181,20 @@
                                         </a>
                                     </h5>
                                     <p class="card-text text-muted small flex-grow-1 mb-3">
-                                        {{ h.description|truncatewords:18|default:"لا يوجد وصف لهذه الحلقة." }}
+                                        {{ h.description|truncatewords:16|default:"لا يوجد وصف لهذه الحلقة." }}
                                     </p>
                                     <div class="d-flex justify-content-between align-items-center text-muted small pt-2 border-top">
-                                        <span><i class="bi bi-person-badge me-1"></i> المعلم: {{ h.owner.display_name }}</span>
-                                        <span><i class="bi bi-calendar-event me-1"></i> {{ h.sessions.count }} جلسة</span>
+                                        <span><i class="bi bi-person-badge text-gold me-1"></i> المعلم: {{ h.owner.display_name }}</span>
+                                        <span><i class="bi bi-calendar-event text-gold me-1"></i> {{ h.sessions.count }} جلسة</span>
                                     </div>
                                 </div>
                                 <div class="card-footer bg-light p-3 border-top-0 d-flex gap-2">
                                     <a href="{% url 'halaqat:detail' h.id %}" class="btn btn-sm btn-primary-custom flex-grow-1">
-                                        <i class="bi bi-eye me-1"></i> عرض الحلقة والمواعيد
+                                        <i class="bi bi-eye-fill me-1"></i> عرض الحلقة وجلساتي
                                     </a>
                                     {% if h.chat_room %}
-                                        <a href="{% url 'chat:conversation_detail' h.chat_room.id %}" class="btn btn-sm btn-outline-secondary" title="محادثة الحلقة">
-                                            <i class="bi bi-chat-text"></i>
+                                        <a href="{% url 'chat:conversation_detail' h.chat_room.id %}" class="btn btn-sm btn-outline-custom" title="محادثة الحلقة">
+                                            <i class="bi bi-chat-text-fill"></i>
                                         </a>
                                     {% endif %}
                                 </div>
@@ -131,9 +205,13 @@
             </div>
         {% else %}
             <div class="card card-custom p-4 text-center">
-                <p class="text-muted mb-2">لست مسجلاً كطالب في أي حلقة بعد.</p>
+                <div class="avatar-circle mx-auto mb-3" style="width: 54px; height: 54px; background: var(--gold-light);">
+                    <i class="bi bi-book text-gold fs-3"></i>
+                </div>
+                <h6 class="fw-bold text-primary-dark mb-1">لست مسجلاً كطالب في أي حلقة بعد</h6>
+                <p class="text-muted small mb-3">استكشف الحلقات القرآنية العامة المفتوحة واطلب الانضمام للبدء في الحفظ مع المعلمين المعتمدين.</p>
                 <div>
-                    <a href="{% url 'halaqat:browse_public' %}" class="btn btn-sm btn-gold-custom">
+                    <a href="{% url 'halaqat:browse_public' %}" class="btn btn-gold-custom">
                         <i class="bi bi-compass me-1"></i> استكشاف الحلقات المتاحة والانضمام
                     </a>
                 </div>
@@ -142,4 +220,3 @@
     </div>
 </div>
 {% endblock %}
-
