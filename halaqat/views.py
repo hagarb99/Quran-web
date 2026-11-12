@@ -438,15 +438,40 @@ def student_progress_sheet_view(request, pk, student_id):
         session_id = request.POST.get('session_id')
         session = get_object_or_404(Session, pk=session_id, halaqa=halaqa)
         
-        att_status = request.POST.get('attendance_status')
+        att_status = request.POST.get('attendance_status', 'PRESENT')
         att_notes = request.POST.get('attendance_notes', '').strip()
 
         new_mem = request.POST.get('new_memorization', '').strip()
+        memo_rating = request.POST.get('memorization_rating', 'MUMTAZ')
+        memo_notes = request.POST.get('memorization_notes', '').strip()
+
         near_rev = request.POST.get('near_revision', '').strip()
+        near_rating = request.POST.get('revision_near_rating', 'MUMTAZ')
+        near_notes = request.POST.get('revision_near_notes', '').strip()
+
         far_rev = request.POST.get('far_revision', '').strip()
-        rating = request.POST.get('rating')
-        notes = request.POST.get('teacher_notes', '').strip()
-        next_assign = request.POST.get('next_assignment', '').strip()
+        far_rating = request.POST.get('revision_far_rating', 'MUMTAZ')
+        far_notes = request.POST.get('revision_far_notes', '').strip()
+
+        general_rating = request.POST.get('general_rating') or memo_rating or 'MUMTAZ'
+        general_notes = request.POST.get('teacher_notes', '').strip()
+
+        next_mem = request.POST.get('next_memorization', '').strip()
+        next_near = request.POST.get('next_revision_near', '').strip()
+        next_far = request.POST.get('next_revision_far', '').strip()
+        next_notes = request.POST.get('next_assignment_notes', '').strip()
+
+        # Build composite next_assignment text for summary
+        assignment_parts = []
+        if next_mem:
+            assignment_parts.append(f"الحفظ: {next_mem}")
+        if next_near:
+            assignment_parts.append(f"المراجعة القريبة: {next_near}")
+        if next_far:
+            assignment_parts.append(f"المراجعة البعيدة: {next_far}")
+        if next_notes:
+            assignment_parts.append(f"توجيهات: {next_notes}")
+        composite_assignment = " | ".join(assignment_parts)
 
         with transaction.atomic():
             # 1. Update or create attendance
@@ -466,16 +491,26 @@ def student_progress_sheet_view(request, pk, student_id):
                         created_by=request.user
                     )
 
-            # 2. Update or create recitation if rating is provided
-            if rating and rating in [r[0] for r in Recitation.RATING_CHOICES]:
+            # 2. Update or create recitation if present and recited
+            if att_status != Attendance.STATUS_ABSENT:
                 rec_obj = Recitation.objects.filter(session=session, student=student).first()
                 if rec_obj:
                     rec_obj.new_memorization = new_mem
+                    rec_obj.memorization_rating = memo_rating
+                    rec_obj.memorization_notes = memo_notes
                     rec_obj.near_revision = near_rev
+                    rec_obj.revision_near_rating = near_rating
+                    rec_obj.revision_near_notes = near_notes
                     rec_obj.far_revision = far_rev
-                    rec_obj.rating = rating
-                    rec_obj.teacher_notes = notes
-                    rec_obj.next_assignment = next_assign
+                    rec_obj.revision_far_rating = far_rating
+                    rec_obj.revision_far_notes = far_notes
+                    rec_obj.rating = general_rating
+                    rec_obj.teacher_notes = general_notes
+                    rec_obj.next_memorization = next_mem
+                    rec_obj.next_revision_near = next_near
+                    rec_obj.next_revision_far = next_far
+                    rec_obj.next_assignment_notes = next_notes
+                    rec_obj.next_assignment = composite_assignment
                     rec_obj.updated_by = request.user
                     rec_obj.save()
                 else:
@@ -483,15 +518,25 @@ def student_progress_sheet_view(request, pk, student_id):
                         session=session,
                         student=student,
                         new_memorization=new_mem,
+                        memorization_rating=memo_rating,
+                        memorization_notes=memo_notes,
                         near_revision=near_rev,
+                        revision_near_rating=near_rating,
+                        revision_near_notes=near_notes,
                         far_revision=far_rev,
-                        rating=rating,
-                        teacher_notes=notes,
-                        next_assignment=next_assign,
+                        revision_far_rating=far_rating,
+                        revision_far_notes=far_notes,
+                        rating=general_rating,
+                        teacher_notes=general_notes,
+                        next_memorization=next_mem,
+                        next_revision_near=next_near,
+                        next_revision_far=next_far,
+                        next_assignment_notes=next_notes,
+                        next_assignment=composite_assignment,
                         created_by=request.user
                     )
 
-        messages.success(request, f"تم حفظ وتحديث بيانات المتابعة والتسميع للطالب {student.display_name} بنجاح.")
+        messages.success(request, f"تم تدوين التسميع والدرجات والتكليف القادم للطالب {student.display_name} بنجاح ✨")
         return redirect('halaqat:student_progress', pk=pk, student_id=student_id)
 
     # Fetch sessions in this halaqa
@@ -530,8 +575,16 @@ def student_progress_sheet_view(request, pk, student_id):
         'DAEEF': recitations.filter(rating=Recitation.RATING_DAEEF).count(),
     }
 
-    # Latest assigned homework
-    latest_rec = recitations.exclude(next_assignment='').order_by('-session__date').first()
+    # Latest assigned homework and autofill
+    latest_rec = recitations.exclude(next_memorization='').order_by('-session__date').first()
+    if not latest_rec:
+        latest_rec = recitations.exclude(next_assignment='').order_by('-session__date').first()
+
+    auto_fill = {
+        'new_memorization': (latest_rec.next_memorization if latest_rec and latest_rec.next_memorization else ''),
+        'near_revision': (latest_rec.next_revision_near if latest_rec and latest_rec.next_revision_near else ''),
+        'far_revision': (latest_rec.next_revision_far if latest_rec and latest_rec.next_revision_far else ''),
+    }
     latest_assignment = latest_rec.next_assignment if latest_rec else None
 
     context = {
@@ -547,6 +600,8 @@ def student_progress_sheet_view(request, pk, student_id):
         'excused_count': excused_count,
         'ratings_counts': ratings_counts,
         'latest_assignment': latest_assignment,
+        'latest_rec': latest_rec,
+        'auto_fill': auto_fill,
         'rating_choices': Recitation.RATING_CHOICES,
     }
     return render(request, 'halaqat/student_progress.html', context)

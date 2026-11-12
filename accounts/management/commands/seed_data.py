@@ -224,11 +224,21 @@ class Command(BaseCommand):
             student=student_m,
             defaults={
                 'new_memorization': 'سورة النبأ من 1 إلى 30',
+                'memorization_rating': Recitation.RATING_MUMTAZ,
+                'memorization_notes': 'أداء ممتاز ومخارج حروف واضحة',
                 'near_revision': 'سورة المرسلات كاملة',
+                'revision_near_rating': Recitation.RATING_MUMTAZ,
+                'revision_near_notes': 'ضبط أحكام المد والغنن',
                 'far_revision': 'سورة الإنسان',
+                'revision_far_rating': Recitation.RATING_JAYYID_JIDDAN,
+                'revision_far_notes': 'انتباه لآيات المتشابهات',
                 'rating': Recitation.RATING_MUMTAZ,
                 'teacher_notes': 'أداء رائع وصوت ندي مع مراعاة الغنن وأحكام النون الساكنة.',
-                'next_assignment': 'إتمام سورة النبأ وحفظ أول 15 آية من سورة النازعات.',
+                'next_memorization': 'سورة النازعات من 1 إلى 25',
+                'next_revision_near': 'سورة النبأ كاملة',
+                'next_revision_far': 'سورة المرسلات وسورة الإنسان',
+                'next_assignment_notes': 'الاستماع للمصحف المرتل برواية حفص مرتين',
+                'next_assignment': 'الحفظ: سورة النازعات 1-25 | المراجعة القريبة: سورة النبأ | المراجعة البعيدة: سورة المرسلات والإنسان',
                 'created_by': teacher_m
             }
         )

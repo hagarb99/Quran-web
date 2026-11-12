@@ -34,9 +34,24 @@ class Recitation(models.Model):
     new_memorization = models.CharField(max_length=255, blank=True, verbose_name="الحفظ الجديد")
     near_revision = models.CharField(max_length=255, blank=True, verbose_name="المراجعة القريبة")
     far_revision = models.CharField(max_length=255, blank=True, verbose_name="المراجعة البعيدة")
-    rating = models.CharField(max_length=20, choices=RATING_CHOICES, verbose_name="مستوى الأداء")
-    teacher_notes = models.TextField(blank=True, verbose_name="ملاحظات المعلم")
-    next_assignment = models.TextField(blank=True, verbose_name="الواجب القادم")
+    rating = models.CharField(max_length=20, choices=RATING_CHOICES, default=RATING_MUMTAZ, verbose_name="مستوى الأداء العام")
+    teacher_notes = models.TextField(blank=True, verbose_name="ملاحظات عامة وتوجيهات")
+    next_assignment = models.TextField(blank=True, verbose_name="الواجب والتكليف القادم")
+
+    # Detailed Ratings & Notes matching the original halaqat schema
+    memorization_rating = models.CharField(max_length=20, choices=RATING_CHOICES, blank=True, null=True, verbose_name="تقييم الحفظ الجديد")
+    memorization_notes = models.TextField(blank=True, verbose_name="ملاحظات الحفظ الجديد")
+
+    revision_near_rating = models.CharField(max_length=20, choices=RATING_CHOICES, blank=True, null=True, verbose_name="تقييم المراجعة القريبة")
+    revision_near_notes = models.TextField(blank=True, verbose_name="ملاحظات المراجعة القريبة")
+
+    revision_far_rating = models.CharField(max_length=20, choices=RATING_CHOICES, blank=True, null=True, verbose_name="تقييم المراجعة البعيدة")
+    revision_far_notes = models.TextField(blank=True, verbose_name="ملاحظات المراجعة البعيدة")
+
+    next_memorization = models.CharField(max_length=255, blank=True, verbose_name="الحفظ الجديد المطلوب")
+    next_revision_near = models.CharField(max_length=255, blank=True, verbose_name="المراجعة القريبة المطلوبة")
+    next_revision_far = models.CharField(max_length=255, blank=True, verbose_name="المراجعة البعيدة المطلوبة")
+    next_assignment_notes = models.TextField(blank=True, verbose_name="توجيهات التكليف القادم")
 
     # Audit tracking
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ التسجيل")

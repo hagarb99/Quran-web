@@ -148,10 +148,11 @@ class HalaqatBusinessRulesTests(TestCase):
         url = reverse('halaqat:student_progress', kwargs={'pk': self.halaqa_male.id, 'student_id': self.student_male.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'جدول المتابعة')
+        self.assertContains(response, 'سجل المتابعة')
 
         # 2. Teacher viewing student's sheet
         self.client.login(username='teacher_m', password='Password123!')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'سجل المتابعة')
 
