@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from .forms import UserRegistrationForm, LoginForm, UserProfileForm
 from .models import User
@@ -17,6 +18,41 @@ def register_view(request):
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
+
+            # Automatically provide active subscription so accounts are never stopped upon registration
+            from subscriptions.models import Subscription, StudentSubscriptionProfile
+            from django.utils import timezone
+            from datetime import timedelta
+
+            now = timezone.now()
+            far_future = now + timedelta(days=3650)
+
+            if user.role == User.ROLE_TEACHER:
+                Subscription.objects.create(
+                    owner=user,
+                    subscription_type=Subscription.TYPE_TEACHER_WITH_STUDENTS,
+                    status=Subscription.STATUS_ACTIVE,
+                    paid_students_count=500,
+                    start_date=now,
+                    end_date=far_future,
+                    notes="اشتراك نشط تلقائياً عند التسجيل"
+                )
+            elif user.role == User.ROLE_STUDENT:
+                Subscription.objects.create(
+                    owner=user,
+                    subscription_type=Subscription.TYPE_INDEPENDENT_STUDENT,
+                    status=Subscription.STATUS_ACTIVE,
+                    start_date=now,
+                    end_date=far_future,
+                    notes="اشتراك مستقل نشط تلقائياً عند التسجيل"
+                )
+                StudentSubscriptionProfile.objects.create(
+                    student=user,
+                    is_independent=True,
+                    is_covered_by_allocation=True,
+                    status_override=StudentSubscriptionProfile.OVERRIDE_AUTO
+                )
+
             messages.success(request, f"أهلاً بك يا {user.display_name}! تم إنشاء حسابك بنجاح. يمكنك الآن تسجيل الدخول.")
             return redirect('accounts:login')
         else:
@@ -117,9 +153,15 @@ def my_progress_view(request):
         'DAEEF': recitations.filter(rating=Recitation.RATING_DAEEF).count(),
     }
 
+    # Pagination for recitations history
+    rec_paginator = Paginator(recitations, 10)
+    page_number = request.GET.get('page')
+    page_obj = rec_paginator.get_page(page_number)
+
     context = {
         'attendances': attendances,
-        'recitations': recitations,
+        'page_obj': page_obj,
+        'recitations': page_obj.object_list,
         'total_sessions_recorded': total_sessions_recorded,
         'present_count': present_count,
         'absent_count': absent_count,

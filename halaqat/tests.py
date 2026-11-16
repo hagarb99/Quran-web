@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from accounts.models import User
 from .models import Halaqa, HalaqaMember, JoinRequest
 from chat.models import Conversation
+from subscriptions.models import Subscription, StudentSubscriptionProfile
 
 
 class HalaqatBusinessRulesTests(TestCase):
@@ -67,6 +68,29 @@ class HalaqatBusinessRulesTests(TestCase):
             halaqa=self.halaqa_female_private,
             user=self.teacher_male,
             role=HalaqaMember.ROLE_OWNER
+        )
+
+        from datetime import timedelta
+        from django.utils import timezone
+        from subscriptions.models import Subscription, StudentSubscriptionProfile
+        now = timezone.now()
+        Subscription.objects.create(
+            owner=self.teacher_male,
+            subscription_type=Subscription.TYPE_TEACHER_WITH_STUDENTS,
+            status=Subscription.STATUS_ACTIVE,
+            paid_students_count=10,
+            start_date=now - timedelta(days=1),
+            end_date=now + timedelta(days=30)
+        )
+        StudentSubscriptionProfile.objects.create(
+            student=self.student_male,
+            teacher=self.teacher_male,
+            is_covered_by_allocation=True
+        )
+        StudentSubscriptionProfile.objects.create(
+            student=self.student_female,
+            teacher=self.teacher_male,
+            is_covered_by_allocation=True
         )
 
     def test_gender_restriction_on_membership(self):
@@ -166,6 +190,11 @@ class HalaqatBusinessRulesTests(TestCase):
             gender=User.GENDER_MALE,
             role=User.ROLE_STUDENT,
             first_name='علي'
+        )
+        StudentSubscriptionProfile.objects.create(
+            student=student_other,
+            teacher=self.teacher_male,
+            is_covered_by_allocation=True
         )
         HalaqaMember.objects.create(halaqa=self.halaqa_male, user=self.student_male, role=HalaqaMember.ROLE_STUDENT)
         HalaqaMember.objects.create(halaqa=self.halaqa_male, user=student_other, role=HalaqaMember.ROLE_STUDENT)

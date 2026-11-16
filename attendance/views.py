@@ -6,9 +6,11 @@ from .models import Attendance
 from .forms import AttendanceForm
 from halaqa_sessions.models import Session
 from accounts.models import User
+from subscriptions.permissions import subscription_required
 
 
 @login_required
+@subscription_required
 def record_attendance_view(request, session_id, student_id):
     session = get_object_or_404(Session, pk=session_id)
     halaqa = session.halaqa

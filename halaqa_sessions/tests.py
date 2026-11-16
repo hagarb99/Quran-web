@@ -30,6 +30,16 @@ class SessionLifecycleAndBusinessRulesTests(TestCase):
             role=HalaqaMember.ROLE_OWNER
         )
 
+        from subscriptions.models import Subscription
+        now = timezone.now()
+        Subscription.objects.create(
+            owner=self.teacher,
+            subscription_type=Subscription.TYPE_INDIVIDUAL_TEACHER,
+            status=Subscription.STATUS_ACTIVE,
+            start_date=now - timedelta(days=1),
+            end_date=now + timedelta(days=30)
+        )
+
     def test_session_lifecycle(self):
         """
         Rule 1: Sessions are created manually.

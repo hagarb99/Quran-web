@@ -23,6 +23,7 @@ urlpatterns = [
     path('chat/', include('chat.urls')),
     path('notifications/', include('notifications.urls')),
     path('dashboard/', include('dashboard.urls')),
+    path('subscriptions/', include('subscriptions.urls')),
 ]
 
 if settings.DEBUG:

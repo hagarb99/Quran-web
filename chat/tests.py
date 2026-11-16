@@ -43,6 +43,23 @@ class ChatAccessAndMessagingTests(TestCase):
             participant2=self.user2
         )
 
+        from datetime import timedelta
+        from django.utils import timezone
+        from subscriptions.models import Subscription, StudentSubscriptionProfile
+        now = timezone.now()
+        for u in [self.user1, self.user2, self.outsider]:
+            Subscription.objects.create(
+                owner=u,
+                subscription_type=Subscription.TYPE_INDEPENDENT_STUDENT,
+                status=Subscription.STATUS_ACTIVE,
+                start_date=now - timedelta(days=1),
+                end_date=now + timedelta(days=30)
+            )
+            StudentSubscriptionProfile.objects.create(
+                student=u,
+                is_independent=True
+            )
+
     def test_group_chat_permission_control(self):
         """Ensure users only access conversations they belong to."""
         # Member user2 can access

@@ -9,9 +9,11 @@ from .models import Conversation, Message
 from halaqat.models import Halaqa, HalaqaMember
 from accounts.models import User
 from notifications.models import notify_user, Notification
+from subscriptions.permissions import subscription_required
 
 
 @login_required
+@subscription_required
 def conversations_list_view(request):
     user = request.user
 
@@ -43,6 +45,7 @@ def conversations_list_view(request):
 
 
 @login_required
+@subscription_required
 def start_direct_chat_view(request, user_id):
     target_user = get_object_or_404(User, pk=user_id)
     if target_user == request.user:
@@ -67,6 +70,7 @@ def start_direct_chat_view(request, user_id):
 
 
 @login_required
+@subscription_required
 @ensure_csrf_cookie
 def conversation_detail_view(request, pk):
     conv = get_object_or_404(Conversation.objects.select_related('halaqa', 'participant1', 'participant2'), pk=pk)
@@ -93,6 +97,7 @@ def conversation_detail_view(request, pk):
 
 
 @login_required
+@subscription_required
 @require_POST
 def send_message_api(request, pk):
     conv = get_object_or_404(Conversation, pk=pk)

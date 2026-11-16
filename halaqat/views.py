@@ -10,6 +10,9 @@ from .forms import HalaqaForm, HalaqaScheduleForm, AddMemberByPhoneForm, UpdateM
 from accounts.models import User
 from chat.models import Conversation
 from notifications.models import notify_user, Notification
+from subscriptions.permissions import subscription_required
+from subscriptions.services import assign_student_to_teacher, has_active_access
+from subscriptions.models import StudentSubscriptionProfile
 
 
 @login_required
@@ -148,6 +151,10 @@ def create_halaqa_view(request):
         messages.error(request, "عذراً، خاصية إنشاء الحلقات مخصصة للمعلمين ومشرفي المنصة فقط.")
         return redirect('halaqat:my_halaqat')
 
+    if not has_active_access(request.user):
+        messages.warning(request, "يلزم وجود اشتراك نشط لإنشاء حلقات جديدة.")
+        return redirect('subscriptions:status_notice')
+
     if request.method == 'POST':
         form = HalaqaForm(request.POST)
         if form.is_valid():
@@ -185,6 +192,7 @@ def create_halaqa_view(request):
 
 
 @login_required
+@subscription_required
 def halaqa_detail_view(request, pk):
     halaqa = get_object_or_404(Halaqa, pk=pk)
     user = request.user
@@ -235,6 +243,7 @@ def halaqa_detail_view(request, pk):
 
 
 @login_required
+@subscription_required
 def edit_halaqa_view(request, pk):
     halaqa = get_object_or_404(Halaqa, pk=pk)
     if not halaqa.can_manage_halaqa(request.user):
@@ -256,6 +265,7 @@ def edit_halaqa_view(request, pk):
 
 
 @login_required
+@subscription_required
 def manage_members_view(request, pk):
     halaqa = get_object_or_404(Halaqa, pk=pk)
     if not halaqa.can_manage_halaqa(request.user):
@@ -285,6 +295,14 @@ def manage_members_view(request, pk):
                         f"تعذر إضافة الطالب: جنس المستخدم ({target_user.get_gender_display()}) لا يتطابق مع فئة الحلقة ({halaqa.get_gender_display()})."
                     )
                 else:
+                    # Cross-teacher ownership rule
+                    if role == HalaqaMember.ROLE_STUDENT:
+                        try:
+                            assign_student_to_teacher(target_user, halaqa.owner, actor=request.user)
+                        except ValidationError as e:
+                            messages.error(request, e.message)
+                            return redirect('halaqat:manage_members', pk=pk)
+
                     member = HalaqaMember.objects.create(
                         halaqa=halaqa,
                         user=target_user,
@@ -368,9 +386,20 @@ def remove_member_view(request, pk, member_id):
 
 
 @login_required
+@subscription_required
 def request_join_halaqa_view(request, pk):
     halaqa = get_object_or_404(Halaqa, pk=pk)
     user = request.user
+
+    # Cross-teacher ownership rule
+    if user.role == User.ROLE_STUDENT:
+        profile = StudentSubscriptionProfile.objects.filter(student=user).first()
+        if profile and profile.teacher and profile.teacher != halaqa.owner:
+            messages.error(
+                request,
+                f"عذراً، أنت مسجل بالفعل تحت اشتراك المعلم '{profile.teacher.display_name}'. لا يمكن طلب الانضمام لحلقة معلم آخر دون تحويل حسابك أولاً."
+            )
+            return redirect('halaqat:browse_public')
 
     # Rule 6: Private halaqat can only be joined through teacher invitations
     if halaqa.visibility == Halaqa.VISIBILITY_PRIVATE:
@@ -412,6 +441,7 @@ def request_join_halaqa_view(request, pk):
 
 
 @login_required
+@subscription_required
 def handle_join_request_view(request, pk, req_id, action):
     halaqa = get_object_or_404(Halaqa, pk=pk)
     if not halaqa.can_manage_halaqa(request.user):
@@ -428,6 +458,14 @@ def handle_join_request_view(request, pk, req_id, action):
         if join_req.user.gender != halaqa.gender:
             messages.error(request, "لا يمكن قبول الطالب لعدم تطابق الجنس مع فئة الحلقة.")
             return redirect('halaqat:manage_members', pk=pk)
+
+        # Cross-teacher ownership rule
+        if join_req.user.role == User.ROLE_STUDENT:
+            try:
+                assign_student_to_teacher(join_req.user, halaqa.owner, actor=request.user)
+            except ValidationError as e:
+                messages.error(request, e.message)
+                return redirect('halaqat:manage_members', pk=pk)
 
         # Create student member
         HalaqaMember.objects.get_or_create(
@@ -476,6 +514,7 @@ from halaqa_sessions.models import Session
 
 
 @login_required
+@subscription_required
 def student_progress_sheet_view(request, pk, student_id):
     """
     Displays the comprehensive follow-up sheet (جدول المتابعة القرآني) for a student in a specific Halaqa.
@@ -651,11 +690,17 @@ def student_progress_sheet_view(request, pk, student_id):
     }
     latest_assignment = latest_rec.next_assignment if latest_rec else None
 
+    # Pagination for progress timeline
+    paginator = Paginator(progress_rows, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
         'halaqa': halaqa,
         'student': student,
         'sessions': sessions,
-        'progress_rows': progress_rows,
+        'page_obj': page_obj,
+        'progress_rows': page_obj.object_list,
         'can_manage': can_manage,
         'is_self': is_self,
         'present_count': present_count,

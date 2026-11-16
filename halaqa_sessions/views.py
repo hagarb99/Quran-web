@@ -8,9 +8,11 @@ from halaqat.models import Halaqa, HalaqaMember
 from attendance.models import Attendance
 from recitations.models import Recitation
 from notifications.models import notify_user, Notification
+from subscriptions.permissions import subscription_required
 
 
 @login_required
+@subscription_required
 def session_create_view(request, halaqa_id):
     halaqa = get_object_or_404(Halaqa, pk=halaqa_id)
     if not halaqa.can_manage_sessions(request.user):
@@ -48,6 +50,7 @@ def session_create_view(request, halaqa_id):
 
 
 @login_required
+@subscription_required
 def session_detail_view(request, pk):
     session = get_object_or_404(Session.all_objects.select_related('halaqa', 'created_by', 'updated_by', 'completed_by', 'reopened_by'), pk=pk)
     halaqa = session.halaqa
@@ -101,6 +104,7 @@ def session_detail_view(request, pk):
 
 
 @login_required
+@subscription_required
 def session_edit_view(request, pk):
     session = get_object_or_404(Session, pk=pk)
     halaqa = session.halaqa
@@ -143,6 +147,7 @@ def session_edit_view(request, pk):
 
 
 @login_required
+@subscription_required
 def session_action_view(request, pk, action):
     session = get_object_or_404(Session, pk=pk)
     halaqa = session.halaqa
@@ -204,6 +209,7 @@ def session_action_view(request, pk, action):
 
 
 @login_required
+@subscription_required
 def session_delete_view(request, pk):
     session = get_object_or_404(Session, pk=pk)
     halaqa = session.halaqa

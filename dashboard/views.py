@@ -7,6 +7,7 @@ from halaqat.models import Halaqa, HalaqaMember
 from halaqa_sessions.models import Session
 from attendance.models import Attendance
 from recitations.models import Recitation
+from subscriptions.models import Subscription, StudentSubscriptionProfile, Payment
 
 
 def is_platform_admin(user):
@@ -26,6 +27,18 @@ def dashboard_overview_view(request):
     completed_sessions = Session.objects.filter(status=Session.STATUS_COMPLETED).count()
     total_recitations = Recitation.objects.count()
 
+    # Subscription Metrics
+    active_subscriptions = Subscription.objects.filter(status=Subscription.STATUS_ACTIVE).count()
+    free_trial_subscriptions = Subscription.objects.filter(status=Subscription.STATUS_FREE_TRIAL).count()
+    pending_subscriptions = Subscription.objects.filter(status=Subscription.STATUS_PENDING).count()
+    paused_subscriptions = Subscription.objects.filter(status=Subscription.STATUS_PAUSED).count()
+    expired_subscriptions = Subscription.objects.filter(status=Subscription.STATUS_EXPIRED).count()
+    closed_subscriptions = Subscription.objects.filter(status=Subscription.STATUS_CLOSED).count()
+
+    independent_students = StudentSubscriptionProfile.objects.filter(is_independent=True).count()
+    covered_students = StudentSubscriptionProfile.objects.filter(is_covered_by_allocation=True).count()
+    total_payments_count = Payment.objects.count()
+
     recent_users = User.objects.order_by('-date_joined')[:6]
     recent_halaqat = Halaqa.objects.select_related('owner').order_by('-created_at')[:6]
 
@@ -38,6 +51,15 @@ def dashboard_overview_view(request):
         'total_sessions': total_sessions,
         'completed_sessions': completed_sessions,
         'total_recitations': total_recitations,
+        'active_subscriptions': active_subscriptions,
+        'free_trial_subscriptions': free_trial_subscriptions,
+        'pending_subscriptions': pending_subscriptions,
+        'paused_subscriptions': paused_subscriptions,
+        'expired_subscriptions': expired_subscriptions,
+        'closed_subscriptions': closed_subscriptions,
+        'independent_students': independent_students,
+        'covered_students': covered_students,
+        'total_payments_count': total_payments_count,
         'recent_users': recent_users,
         'recent_halaqat': recent_halaqat,
     }
