@@ -111,74 +111,78 @@
         </div>
     </div>
 
-    <!-- Modern Animated Dashboard Stats Cards -->
-    <div class="stats-dashboard-grid mb-4">
+    <!-- Professional Bootstrap Admin Dashboard KPI Cards -->
+    <div class="row g-3 mb-4">
         <!-- 1. Present -->
-        <div class="stat-dashboard-card stat-present">
-            <div class="stat-header">
-                <span class="stat-title">جلسات الحضور</span>
-                <div class="stat-icon-tile">
-                    <i class="bi bi-person-check-fill"></i>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="admin-stat-card stat-present h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="admin-stat-label">جلسات الحضور</div>
+                        <div class="admin-stat-value text-success">{{ present_count }} <span class="fs-6 text-muted fw-normal">جلسة</span></div>
+                    </div>
+                    <div class="admin-stat-icon">
+                        <i class="bi bi-person-check-fill"></i>
+                    </div>
+                </div>
+                <div class="admin-stat-subtext">
+                    <i class="bi bi-check-circle-fill"></i> حضور منضبط
                 </div>
             </div>
-            <div class="stat-number">
-                <span>{{ present_count }}</span>
-                <span class="fs-6 text-muted fw-normal">جلسة</span>
-            </div>
-            <span class="stat-badge-trend">
-                <i class="bi bi-check-circle-fill"></i> حضور منضبط
-            </span>
         </div>
 
         <!-- 2. Absent -->
-        <div class="stat-dashboard-card stat-absent">
-            <div class="stat-header">
-                <span class="stat-title">جلسات الغياب</span>
-                <div class="stat-icon-tile">
-                    <i class="bi bi-person-x-fill"></i>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="admin-stat-card stat-absent h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="admin-stat-label">جلسات الغياب</div>
+                        <div class="admin-stat-value text-danger">{{ absent_count }} <span class="fs-6 text-muted fw-normal">جلسة</span></div>
+                    </div>
+                    <div class="admin-stat-icon">
+                        <i class="bi bi-person-x-fill"></i>
+                    </div>
+                </div>
+                <div class="admin-stat-subtext">
+                    <i class="bi bi-exclamation-circle-fill"></i> غياب بدون عذر
                 </div>
             </div>
-            <div class="stat-number">
-                <span>{{ absent_count }}</span>
-                <span class="fs-6 text-muted fw-normal">جلسة</span>
-            </div>
-            <span class="stat-badge-trend">
-                <i class="bi bi-exclamation-circle-fill"></i> غياب بدون عذر
-            </span>
         </div>
 
         <!-- 3. Late -->
-        <div class="stat-dashboard-card stat-late">
-            <div class="stat-header">
-                <span class="stat-title">التأخر</span>
-                <div class="stat-icon-tile">
-                    <i class="bi bi-clock-history"></i>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="admin-stat-card stat-late h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="admin-stat-label">مرات التأخر</div>
+                        <div class="admin-stat-value text-warning">{{ late_count }} <span class="fs-6 text-muted fw-normal">مرات</span></div>
+                    </div>
+                    <div class="admin-stat-icon">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                </div>
+                <div class="admin-stat-subtext">
+                    <i class="bi bi-hourglass-split"></i> تأخر عن الموعد
                 </div>
             </div>
-            <div class="stat-number">
-                <span>{{ late_count }}</span>
-                <span class="fs-6 text-muted fw-normal">مرات</span>
-            </div>
-            <span class="stat-badge-trend">
-                <i class="bi bi-hourglass-split"></i> تأخر عن الموعد
-            </span>
         </div>
 
         <!-- 4. Excused -->
-        <div class="stat-dashboard-card stat-excused">
-            <div class="stat-header">
-                <span class="stat-title">الغياب بعذر</span>
-                <div class="stat-icon-tile">
-                    <i class="bi bi-shield-check"></i>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="admin-stat-card stat-excused h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="admin-stat-label">الغياب بعذر</div>
+                        <div class="admin-stat-value text-info">{{ excused_count }} <span class="fs-6 text-muted fw-normal">جلسة</span></div>
+                    </div>
+                    <div class="admin-stat-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                </div>
+                <div class="admin-stat-subtext">
+                    <i class="bi bi-info-circle-fill"></i> إذن مسبق
                 </div>
             </div>
-            <div class="stat-number">
-                <span>{{ excused_count }}</span>
-                <span class="fs-6 text-muted fw-normal">جلسة</span>
-            </div>
-            <span class="stat-badge-trend">
-                <i class="bi bi-info-circle-fill"></i> إذن مسبق
-            </span>
         </div>
     </div>
 

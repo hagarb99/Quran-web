@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils import timezone
 from .models import Halaqa, HalaqaMember, HalaqaSchedule, JoinRequest
@@ -14,25 +15,72 @@ from notifications.models import notify_user, Notification
 @login_required
 def my_halaqat_view(request):
     """
-    Displays the user's active halaqat categorized by their role in them.
+    Displays the user's halaqat categorized by their role in them,
+    with tabs/filters for Active, Archived, and Deleted halaqat,
+    search capability, and pagination.
     """
     user = request.user
-    
-    # Halaqat where user is owner or teacher/assistant
-    teaching_memberships = HalaqaMember.objects.filter(
+    status_filter = request.GET.get('status', 'active')  # 'active', 'archived', 'deleted'
+    query = request.GET.get('q', '').strip()
+
+    # Base teaching memberships queryset
+    base_teaching = HalaqaMember.objects.filter(
         user=user,
         role__in=[HalaqaMember.ROLE_OWNER, HalaqaMember.ROLE_TEACHER, HalaqaMember.ROLE_ASSISTANT]
-    ).select_related('halaqa')
-    
-    # Halaqat where user is student
-    learning_memberships = HalaqaMember.objects.filter(
+    ).select_related('halaqa', 'halaqa__owner')
+
+    # Tab counts for teacher
+    active_count = base_teaching.filter(halaqa__is_deleted=False, halaqa__is_archived=False).count()
+    archived_count = base_teaching.filter(halaqa__is_deleted=False, halaqa__is_archived=True).count()
+    deleted_count = base_teaching.filter(halaqa__is_deleted=True).count()
+
+    # Filter by selected status tab
+    if status_filter == 'archived':
+        teaching_qs = base_teaching.filter(halaqa__is_deleted=False, halaqa__is_archived=True)
+    elif status_filter == 'deleted':
+        teaching_qs = base_teaching.filter(halaqa__is_deleted=True)
+    else:
+        status_filter = 'active'
+        teaching_qs = base_teaching.filter(halaqa__is_deleted=False, halaqa__is_archived=False)
+
+    # Search filter
+    if query:
+        teaching_qs = teaching_qs.filter(
+            Q(halaqa__name__icontains=query) | Q(halaqa__description__icontains=query)
+        )
+
+    # Base learning memberships queryset (students only see active non-deleted non-archived halaqat)
+    learning_qs = HalaqaMember.objects.filter(
         user=user,
-        role=HalaqaMember.ROLE_STUDENT
-    ).select_related('halaqa')
+        role=HalaqaMember.ROLE_STUDENT,
+        halaqa__is_deleted=False,
+        halaqa__is_archived=False
+    ).select_related('halaqa', 'halaqa__owner')
+
+    if query:
+        learning_qs = learning_qs.filter(
+            Q(halaqa__name__icontains=query) | Q(halaqa__description__icontains=query)
+        )
+
+    # Pagination
+    teaching_paginator = Paginator(teaching_qs, 6)
+    teaching_page_number = request.GET.get('page')
+    teaching_page_obj = teaching_paginator.get_page(teaching_page_number)
+
+    learning_paginator = Paginator(learning_qs, 6)
+    learning_page_number = request.GET.get('learn_page')
+    learning_page_obj = learning_paginator.get_page(learning_page_number)
 
     context = {
-        'teaching_memberships': teaching_memberships,
-        'learning_memberships': learning_memberships,
+        'status_filter': status_filter,
+        'query': query,
+        'active_count': active_count,
+        'archived_count': archived_count,
+        'deleted_count': deleted_count,
+        'teaching_page_obj': teaching_page_obj,
+        'teaching_memberships': teaching_page_obj.object_list,
+        'learning_page_obj': learning_page_obj,
+        'learning_memberships': learning_page_obj.object_list,
     }
     return render(request, 'halaqat/my_halaqat.html', context)
 
@@ -42,11 +90,16 @@ def browse_public_view(request):
     Browse public halaqat.
     Rule 6: Private Halaqat must NOT appear in public browsing.
     Rule 8: Students can only view/join Halaqat matching their gender.
+    Archived and Deleted halaqat must NOT appear in public browsing.
     """
     query = request.GET.get('q', '').strip()
     
-    # Only public halaqat
-    halaqat = Halaqa.objects.filter(visibility=Halaqa.VISIBILITY_PUBLIC)
+    # Only active, non-archived, non-deleted public halaqat
+    halaqat = Halaqa.objects.filter(
+        visibility=Halaqa.VISIBILITY_PUBLIC,
+        is_archived=False,
+        is_deleted=False
+    ).select_related('owner').prefetch_related('schedules', 'members')
 
     if request.user.is_authenticated:
         # If student, restrict to student's gender
@@ -69,8 +122,14 @@ def browse_public_view(request):
             JoinRequest.objects.filter(user=request.user, status=JoinRequest.STATUS_PENDING).values_list('halaqa_id', flat=True)
         )
 
+    # Pagination
+    paginator = Paginator(halaqat, 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        'halaqat': halaqat,
+        'page_obj': page_obj,
+        'halaqat': page_obj.object_list,
         'query': query,
         'user_memberships': user_memberships,
         'user_pending_requests': user_pending_requests,
@@ -134,6 +193,10 @@ def halaqa_detail_view(request, pk):
     is_owner = halaqa.is_owner(user)
     is_admin = user.is_platform_admin
 
+    if halaqa.is_deleted and not (is_owner or is_admin):
+        messages.error(request, "تم حذف هذه الحلقة ولا يمكن الوصول إليها.")
+        return redirect('halaqat:my_halaqat')
+
     # Check access to private halaqa: only members, owner, or platform admin can view private halaqa
     if halaqa.visibility == Halaqa.VISIBILITY_PRIVATE and not (member or is_owner or is_admin):
         messages.error(request, "هذه الحلقة خاصة ولا يمكن الوصول إليها إلا للمنضمين إليها بدعوة.")
@@ -157,6 +220,7 @@ def halaqa_detail_view(request, pk):
     context = {
         'halaqa': halaqa,
         'member': member,
+        'is_owner': is_owner,
         'can_manage': can_manage,
         'can_manage_sessions': can_manage_sessions,
         'can_record_attendance': can_record_attendance,
@@ -667,3 +731,84 @@ def schedule_delete_view(request, pk, schedule_id):
         return redirect('halaqat:detail', pk=pk)
 
     return render(request, 'halaqat/confirm_delete_schedule.html', {'halaqa': halaqa, 'schedule': schedule})
+
+
+@login_required
+def archive_halaqa_view(request, pk):
+    """
+    Toggles archive status for a halaqa. Only owner or platform admin can archive.
+    """
+    halaqa = get_object_or_404(Halaqa, pk=pk)
+    if not (halaqa.is_owner(request.user) or request.user.is_platform_admin):
+        messages.error(request, "ليست لديك صلاحية أرشفة هذه الحلقة.")
+        return redirect('halaqat:detail', pk=pk)
+
+    if request.method == 'POST':
+        halaqa.is_archived = not halaqa.is_archived
+        halaqa.save()
+        if halaqa.is_archived:
+            messages.success(request, f"تمت أرشفة حلقة '{halaqa.name}' بنجاح.")
+        else:
+            messages.success(request, f"تم إلغاء أرشفة حلقة '{halaqa.name}' واستعادتها للحلقات النشطة.")
+        return redirect('halaqat:detail', pk=pk)
+
+    return render(request, 'halaqat/confirm_archive_halaqa.html', {'halaqa': halaqa})
+
+
+@login_required
+def delete_halaqa_view(request, pk):
+    """
+    Soft-deletes a halaqa (moves to trash). Only owner or platform admin can delete.
+    """
+    halaqa = get_object_or_404(Halaqa, pk=pk)
+    if not (halaqa.is_owner(request.user) or request.user.is_platform_admin):
+        messages.error(request, "ليست لديك صلاحية حذف هذه الحلقة.")
+        return redirect('halaqat:detail', pk=pk)
+
+    if request.method == 'POST':
+        halaqa.is_deleted = True
+        halaqa.deleted_at = timezone.now()
+        halaqa.save()
+        messages.success(request, f"تم نقل حلقة '{halaqa.name}' إلى سلة المحذوفات بنجاح.")
+        return redirect('halaqat:my_halaqat')
+
+    return render(request, 'halaqat/confirm_delete_halaqa.html', {'halaqa': halaqa})
+
+
+@login_required
+def restore_halaqa_view(request, pk):
+    """
+    Restores a soft-deleted halaqa from trash.
+    """
+    halaqa = get_object_or_404(Halaqa, pk=pk)
+    if not (halaqa.is_owner(request.user) or request.user.is_platform_admin):
+        messages.error(request, "ليست لديك صلاحية استعادة هذه الحلقة.")
+        return redirect('halaqat:my_halaqat')
+
+    if request.method == 'POST':
+        halaqa.is_deleted = False
+        halaqa.deleted_at = None
+        halaqa.save()
+        messages.success(request, f"تمت استعادة حلقة '{halaqa.name}' من سلة المحذوفات بنجاح.")
+        return redirect('halaqat:detail', pk=pk)
+
+    return redirect('halaqat:my_halaqat')
+
+
+@login_required
+def permanent_delete_halaqa_view(request, pk):
+    """
+    Permanently deletes a halaqa from database.
+    """
+    halaqa = get_object_or_404(Halaqa, pk=pk)
+    if not (halaqa.is_owner(request.user) or request.user.is_platform_admin):
+        messages.error(request, "ليست لديك صلاحية الحذف النهائي لهذه الحلقة.")
+        return redirect('halaqat:my_halaqat')
+
+    if request.method == 'POST':
+        name = halaqa.name
+        halaqa.delete()
+        messages.success(request, f"تم حذف حلقة '{name}' نهائياً من قاعدة البيانات.")
+        return redirect('halaqat:my_halaqat')
+
+    return redirect('halaqat:my_halaqat')

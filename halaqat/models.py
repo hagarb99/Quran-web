@@ -28,6 +28,9 @@ class Halaqa(models.Model):
         related_name='owned_halaqat',
         verbose_name="مالك الحلقة"
     )
+    is_archived = models.BooleanField(default=False, verbose_name="مؤرشفة")
+    is_deleted = models.BooleanField(default=False, verbose_name="محذوفة")
+    deleted_at = models.DateTimeField(null=True, blank=True, verbose_name="تاريخ الحذف")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="آخر تحديث")
 

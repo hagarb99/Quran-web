@@ -68,3 +68,16 @@ class AccountsSecurityAndAuthTests(TestCase):
         })
         self.assertTrue(response.context['form'].has_error('email'))
         self.assertTrue(response.context['form'].has_error('phone'))
+
+    def test_password_reset_views_and_flow(self):
+        # 1. Password reset request page loads
+        response = self.client.get(reverse('accounts:password_reset'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'نسيت كلمة المرور')
+
+        # 2. Submit valid email for reset
+        post_response = self.client.post(reverse('accounts:password_reset'), {
+            'email': 'teacher1@example.com'
+        }, follow=True)
+        self.assertEqual(post_response.status_code, 200)
+        self.assertContains(post_response, 'تحقق من بريدك الإلكتروني')

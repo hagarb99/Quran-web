@@ -6,7 +6,7 @@
 <div class="container py-4">
 
     <!-- Hero Welcome Banner -->
-    <div class="welcome-hero">
+    <div class="welcome-hero mb-4">
         <div class="row align-items-center g-3">
             <div class="col-lg-7">
                 <div class="d-flex align-items-center gap-2 mb-2">
@@ -44,53 +44,98 @@
                         <i class="bi bi-collection-play"></i>
                     </div>
                     <div>
-                        <div class="fs-3 fw-bold lh-1">{{ teaching_memberships.count|add:learning_memberships.count }}</div>
-                        <div class="small opacity-75">إجمالي الحلقات المشترك بها</div>
+                        <div class="fs-3 fw-bold lh-1">{{ active_count|add:learning_memberships.count }}</div>
+                        <div class="small opacity-75">إجمالي الحلقات النشطة</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Section Title -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold text-primary-dark mb-0 d-flex align-items-center gap-2">
-            <i class="bi bi-grid-fill text-gold"></i>
-            <span>حلقاتي القرآنية</span>
-        </h4>
-    </div>
-
-    <!-- Teaching / Supervising Section -->
+    <!-- Section Title & Tabs -->
     {% if teaching_memberships or user.role != 'STUDENT' or user.is_platform_admin %}
     <div class="mb-5">
-        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3 pb-2 border-bottom">
             <div class="d-flex align-items-center gap-2">
                 <i class="bi bi-person-workspace text-gold fs-5"></i>
                 <h5 class="fw-bold text-primary-dark mb-0">حلقات أقوم بإدارتها أو تعليمها</h5>
-                <span class="badge bg-light text-dark border">{{ teaching_memberships.count }}</span>
             </div>
+            
+            <!-- Search & Filters -->
+            <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+                <input type="hidden" name="status" value="{{ status_filter }}">
+                <div class="input-group input-group-sm" style="max-width: 260px;">
+                    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="بحث في حلقاتي...">
+                    <button class="btn btn-primary-custom" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    {% if query %}
+                        <a href="?status={{ status_filter }}" class="btn btn-outline-secondary" title="إلغاء البحث">
+                            <i class="bi bi-x"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
         </div>
+
+        <!-- Filter Tabs: Active, Archived, Deleted -->
+        <ul class="nav nav-pills-modern gap-2 mb-4">
+            <li class="nav-item">
+                <a class="nav-link {% if status_filter == 'active' %}active{% endif %} fw-semibold px-3 py-2" href="?status=active{% if query %}&q={{ query }}{% endif %}">
+                    <i class="bi bi-check2-circle me-1"></i> الحلقات النشطة
+                    <span class="badge rounded-pill bg-light text-dark ms-1">{{ active_count }}</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if status_filter == 'archived' %}active{% endif %} fw-semibold px-3 py-2" href="?status=archived{% if query %}&q={{ query }}{% endif %}">
+                    <i class="bi bi-archive me-1"></i> الحلقات المؤرشفة
+                    <span class="badge rounded-pill bg-light text-dark ms-1">{{ archived_count }}</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if status_filter == 'deleted' %}active text-danger{% endif %} fw-semibold px-3 py-2" href="?status=deleted{% if query %}&q={{ query }}{% endif %}">
+                    <i class="bi bi-trash3 me-1"></i> سلة المحذوفات
+                    <span class="badge rounded-pill bg-light text-dark ms-1">{{ deleted_count }}</span>
+                </a>
+            </li>
+        </ul>
         
         {% if teaching_memberships %}
             <div class="row g-3">
                 {% for mem in teaching_memberships %}
                     {% with h=mem.halaqa %}
                         <div class="col-md-6 col-lg-4">
-                            <div class="card card-custom h-100 d-flex flex-column">
-                                <div class="card-halaqa-top-bar"></div>
+                            <div class="card card-custom h-100 d-flex flex-column {% if h.is_deleted %}border-danger border-opacity-25{% elif h.is_archived %}border-warning border-opacity-25{% endif %}">
+                                <div class="card-halaqa-top-bar {% if h.is_deleted %}bg-danger{% elif h.is_archived %}bg-warning{% endif %}"></div>
                                 <div class="card-body p-4 d-flex flex-column">
                                     <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <span class="badge badge-gold">
-                                            <i class="bi bi-award me-1"></i> {{ mem.get_role_display }}
-                                        </span>
-                                        <span class="badge {% if h.visibility == 'PUBLIC' %}badge-success-custom{% else %}badge-primary-custom{% endif %}">
-                                            {% if h.visibility == 'PUBLIC' %}
-                                                <i class="bi bi-globe me-1"></i> عامة
+                                        <div class="d-flex gap-1 flex-wrap">
+                                            <span class="badge badge-gold">
+                                                <i class="bi bi-award me-1"></i> {{ mem.get_role_display }}
+                                            </span>
+                                            {% if h.is_deleted %}
+                                                <span class="badge bg-danger text-white">
+                                                    <i class="bi bi-trash3-fill me-1"></i> محذوفة
+                                                </span>
+                                            {% elif h.is_archived %}
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-archive-fill me-1"></i> مؤرشفة
+                                                </span>
                                             {% else %}
-                                                <i class="bi bi-lock-fill me-1"></i> خاصة
+                                                <span class="badge {% if h.visibility == 'PUBLIC' %}badge-success-custom{% else %}badge-primary-custom{% endif %}">
+                                                    {% if h.visibility == 'PUBLIC' %}
+                                                        <i class="bi bi-globe me-1"></i> عامة
+                                                    {% else %}
+                                                        <i class="bi bi-lock-fill me-1"></i> خاصة
+                                                    {% endif %}
+                                                </span>
                                             {% endif %}
+                                        </div>
+                                        <span class="badge badge-primary-custom">
+                                            <i class="bi bi-gender-ambiguous me-1"></i> {{ h.get_gender_display }}
                                         </span>
                                     </div>
+
                                     <h5 class="card-title fw-bold text-primary-dark mb-2">
                                         <a href="{% url 'halaqat:detail' h.id %}" class="text-decoration-none text-primary-dark">
                                             {{ h.name }}
@@ -101,17 +146,67 @@
                                     </p>
                                     <div class="d-flex justify-content-between align-items-center text-muted small pt-2 border-top">
                                         <span><i class="bi bi-people-fill text-gold me-1"></i> {{ h.members.count }} عضو</span>
-                                        <span><i class="bi bi-gender-ambiguous text-gold me-1"></i> {{ h.get_gender_display }}</span>
+                                        <span><i class="bi bi-calendar-check text-gold me-1"></i> {{ h.sessions.count }} جلسة</span>
                                     </div>
                                 </div>
-                                <div class="card-footer bg-light p-3 border-top-0 d-flex gap-2">
-                                    <a href="{% url 'halaqat:detail' h.id %}" class="btn btn-sm btn-primary-custom flex-grow-1">
-                                        <i class="bi bi-box-arrow-up-right me-1"></i> إدارة الحلقة
-                                    </a>
-                                    {% if h.chat_room %}
-                                        <a href="{% url 'chat:conversation_detail' h.chat_room.id %}" class="btn btn-sm btn-outline-custom" title="محادثة الحلقة">
-                                            <i class="bi bi-chat-text-fill"></i>
+                                <div class="card-footer bg-light p-3 border-top-0 d-flex gap-2 flex-wrap align-items-center">
+                                    {% if not h.is_deleted %}
+                                        <a href="{% url 'halaqat:detail' h.id %}" class="btn btn-sm btn-primary-custom flex-grow-1">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i> إدارة الحلقة
                                         </a>
+                                        {% if h.chat_room %}
+                                            <a href="{% url 'chat:conversation_detail' h.chat_room.id %}" class="btn btn-sm btn-outline-custom" title="محادثة الحلقة">
+                                                <i class="bi bi-chat-text-fill"></i>
+                                            </a>
+                                        {% endif %}
+                                        
+                                        <!-- Actions Dropdown for Teacher -->
+                                        {% if mem.role == 'OWNER' or user.is_platform_admin %}
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="خيارات إضافية">
+                                                    <i class="bi bi-three-dots-vertical"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                    <li>
+                                                        <a class="dropdown-item" href="{% url 'halaqat:edit' h.id %}">
+                                                            <i class="bi bi-pencil me-2 text-primary"></i> تعديل بيانات الحلقة
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <form method="post" action="{% url 'halaqat:archive' h.id %}">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="dropdown-item">
+                                                                {% if h.is_archived %}
+                                                                    <i class="bi bi-arrow-counterclockwise me-2 text-warning"></i> إلغاء الأرشفة
+                                                                {% else %}
+                                                                    <i class="bi bi-archive me-2 text-warning"></i> أرشفة الحلقة
+                                                                {% endif %}
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="{% url 'halaqat:delete' h.id %}">
+                                                            <i class="bi bi-trash3 me-2"></i> نقل إلى المهملات
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <!-- In Trash Options -->
+                                        <form method="post" action="{% url 'halaqat:restore' h.id %}" class="flex-grow-1">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success w-100">
+                                                <i class="bi bi-arrow-counterclockwise me-1"></i> استعادة الحلقة
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{% url 'halaqat:permanent_delete' h.id %}" onsubmit="return confirm('تحذير: هل أنت متأكد من الحذف النهائي لهذه الحلقة؟ سيتم مسحها نهائياً ولا يمكن التراجع!');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف نهائي من قاعدة البيانات">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </form>
                                     {% endif %}
                                 </div>
                             </div>
@@ -119,18 +214,78 @@
                     {% endwith %}
                 {% endfor %}
             </div>
+
+            <!-- Teaching Pagination -->
+            {% if teaching_page_obj.has_other_pages %}
+                <nav class="mt-4 pt-2 d-flex justify-content-center" aria-label="تنقل صفحات الحلقات">
+                    <ul class="pagination pagination-custom shadow-xs mb-0">
+                        {% if teaching_page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?status={{ status_filter }}{% if query %}&q={{ query }}{% endif %}&page={{ teaching_page_obj.previous_page_number }}">
+                                    <i class="bi bi-chevron-right me-1"></i> السابق
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right me-1"></i> السابق</span></li>
+                        {% endif %}
+
+                        {% for num in teaching_page_obj.paginator.page_range %}
+                            {% if teaching_page_obj.number == num %}
+                                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% elif num > teaching_page_obj.number|add:'-3' and num < teaching_page_obj.number|add:'3' %}
+                                <li class="page-item"><a class="page-link" href="?status={{ status_filter }}{% if query %}&q={{ query }}{% endif %}&page={{ num }}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if teaching_page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?status={{ status_filter }}{% if query %}&q={{ query }}{% endif %}&page={{ teaching_page_obj.next_page_number }}">
+                                    التالي <i class="bi bi-chevron-left ms-1"></i>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">التالي <i class="bi bi-chevron-left ms-1"></i></span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+
         {% else %}
             <div class="card card-custom p-4 text-center">
                 <div class="avatar-circle mx-auto mb-3" style="width: 54px; height: 54px; background: var(--primary-light);">
-                    <i class="bi bi-folder-plus text-primary fs-3"></i>
+                    {% if status_filter == 'archived' %}
+                        <i class="bi bi-archive text-warning fs-3"></i>
+                    {% elif status_filter == 'deleted' %}
+                        <i class="bi bi-trash3 text-danger fs-3"></i>
+                    {% else %}
+                        <i class="bi bi-folder-plus text-primary fs-3"></i>
+                    {% endif %}
                 </div>
-                <h6 class="fw-bold text-primary-dark mb-1">لا توجد لديك حلقات تشرف عليها حالياً</h6>
-                <p class="text-muted small mb-3">يمكنك إنشاء أول حلقة قرآنية وإضافة الطلاب والبدء في إدارة الجلسات ومتابعة الحفظ.</p>
-                <div>
-                    <a href="{% url 'halaqat:create' %}" class="btn btn-gold-custom">
-                        <i class="bi bi-plus-circle me-1"></i> إنشاء حلقة جديدة الآن
-                    </a>
-                </div>
+                <h6 class="fw-bold text-primary-dark mb-1">
+                    {% if status_filter == 'archived' %}
+                        لا توجد لديك حلقات مؤرشفة حالياً
+                    {% elif status_filter == 'deleted' %}
+                        سلة المحذوفات فارغة
+                    {% else %}
+                        لا توجد لديك حلقات نشطة مطابقة
+                    {% endif %}
+                </h6>
+                <p class="text-muted small mb-3">
+                    {% if status_filter == 'archived' %}
+                        يمكنك أرشفة أي حلقة لاحقاً لإخفائها مؤقتاً عند الحاجة دون حذف بياناتها.
+                    {% elif status_filter == 'deleted' %}
+                        الحلقات التي يتم حذفها ستظهر هنا مع إمكانية استعادتها في أي وقت.
+                    {% else %}
+                        يمكنك إنشاء أول حلقة قرآنية وإضافة الطلاب والبدء في إدارة الجلسات ومتابعة الحفظ.
+                    {% endif %}
+                </p>
+                {% if status_filter == 'active' and not query %}
+                    <div>
+                        <a href="{% url 'halaqat:create' %}" class="btn btn-gold-custom">
+                            <i class="bi bi-plus-circle me-1"></i> إنشاء حلقة جديدة الآن
+                        </a>
+                    </div>
+                {% endif %}
             </div>
         {% endif %}
     </div>
@@ -188,6 +343,42 @@
                     {% endwith %}
                 {% endfor %}
             </div>
+
+            <!-- Learning Pagination -->
+            {% if learning_page_obj.has_other_pages %}
+                <nav class="mt-4 pt-2 d-flex justify-content-center" aria-label="تنقل صفحات حلقات الطالب">
+                    <ul class="pagination pagination-custom shadow-xs mb-0">
+                        {% if learning_page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?learn_page={{ learning_page_obj.previous_page_number }}">
+                                    <i class="bi bi-chevron-right me-1"></i> السابق
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right me-1"></i> السابق</span></li>
+                        {% endif %}
+
+                        {% for num in learning_page_obj.paginator.page_range %}
+                            {% if learning_page_obj.number == num %}
+                                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% elif num > learning_page_obj.number|add:'-3' and num < learning_page_obj.number|add:'3' %}
+                                <li class="page-item"><a class="page-link" href="?learn_page={{ num }}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if learning_page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?learn_page={{ learning_page_obj.next_page_number }}">
+                                    التالي <i class="bi bi-chevron-left ms-1"></i>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">التالي <i class="bi bi-chevron-left ms-1"></i></span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+
         {% else %}
             <div class="card card-custom p-4 text-center">
                 <div class="avatar-circle mx-auto mb-3" style="width: 54px; height: 54px; background: var(--gold-light);">

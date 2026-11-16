@@ -3,103 +3,154 @@
 {% block title %}إنشاء حساب جديد - منصة حلقات{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-7">
-            <div class="card card-custom shadow">
-                <div class="card-header-custom text-center py-4 bg-white border-0">
-                    <div class="avatar-circle mx-auto mb-3" style="width: 56px; height: 56px; background-color: var(--gold-light);">
+        <div class="col-md-10 col-lg-8 col-xl-7">
+            <div class="card card-custom shadow-sm border-0">
+                <div class="card-halaqa-top-bar gold"></div>
+                
+                <!-- Header (Centered column layout - Title on top, Subtitle strictly below) -->
+                <div class="text-center pt-4 pb-3 px-4">
+                    <div class="avatar-circle mx-auto mb-3" style="width: 60px; height: 60px; background-color: var(--gold-light);">
                         <i class="bi bi-person-plus text-gold fs-3"></i>
                     </div>
-                    <h3 class="fw-bold mb-1 text-primary-dark">إنشاء حساب جديد</h3>
+                    <h3 class="fw-bold mb-2 text-primary-dark">إنشاء حساب جديد</h3>
                     <p class="text-muted small mb-0">انضم إلى مجتمع حلقات القرآن الكريم طالباً أو معلماً</p>
                 </div>
-                <div class="card-body p-4 pt-0">
+
+                <div class="card-body p-4 p-md-5 pt-0">
                     <form method="post" novalidate>
                         {% csrf_token %}
                         
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="id_first_name" class="form-label fw-semibold">الاسم الأول <span class="text-danger">*</span></label>
-                                {{ form.first_name }}
-                                {% if form.first_name.errors %}
-                                    <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="id_last_name" class="form-label fw-semibold">اسم العائلة <span class="text-danger">*</span></label>
-                                {{ form.last_name }}
-                                {% if form.last_name.errors %}
-                                    <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="id_username" class="form-label fw-semibold">اسم المستخدم (باللغة الإنجليزية) <span class="text-danger">*</span></label>
-                                {{ form.username }}
-                                {% if form.username.errors %}
-                                    <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="id_email" class="form-label fw-semibold">البريد الإلكتروني <span class="text-danger">*</span></label>
-                                {{ form.email }}
-                                {% if form.email.errors %}
-                                    <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
-                                {% endif %}
+                        <!-- 1. Personal Information -->
+                        <div class="mb-4">
+                            <span class="text-xs text-uppercase fw-bold text-muted d-block mb-3 border-bottom pb-1">
+                                <i class="bi bi-person-badge text-gold me-1"></i> المعلومات الشخصية
+                            </span>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="id_first_name" class="form-label fw-semibold">
+                                        <i class="bi bi-person text-gold me-1"></i>الاسم الأول <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_last_name" class="form-label fw-semibold">
+                                        <i class="bi bi-person text-gold me-1"></i>اسم العائلة <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="id_phone" class="form-label fw-semibold">رقم الهاتف <span class="text-danger">*</span></label>
-                                {{ form.phone }}
-                                {% if form.phone.errors %}
-                                    <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
-                                {% endif %}
+                        <!-- 2. Account Credentials & Contact -->
+                        <div class="mb-4">
+                            <span class="text-xs text-uppercase fw-bold text-muted d-block mb-3 border-bottom pb-1">
+                                <i class="bi bi-shield-lock text-gold me-1"></i> بيانات الدخول والتواصل
+                            </span>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label for="id_username" class="form-label fw-semibold">
+                                        <i class="bi bi-at text-gold me-1"></i>اسم المستخدم (بالإنجليزية) <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.username }}
+                                    <div class="form-text text-muted small">للأحرف الإنجليزية والأرقام فقط دون مسافات</div>
+                                    {% if form.username.errors %}
+                                        <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_email" class="form-label fw-semibold">
+                                        <i class="bi bi-envelope text-gold me-1"></i>البريد الإلكتروني <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.email }}
+                                    <div class="form-text text-muted small">يستخدم لاستعادة كلمة المرور والإشعارات</div>
+                                    {% if form.email.errors %}
+                                        <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="id_gender" class="form-label fw-semibold">الجنس <span class="text-danger">*</span></label>
-                                {{ form.gender }}
-                                {% if form.gender.errors %}
-                                    <div class="text-danger small mt-1">{{ form.gender.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="id_role" class="form-label fw-semibold">نوع الحساب <span class="text-danger">*</span></label>
-                                {{ form.role }}
-                                {% if form.role.errors %}
-                                    <div class="text-danger small mt-1">{{ form.role.errors.0 }}</div>
-                                {% endif %}
+
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="id_phone" class="form-label fw-semibold">
+                                        <i class="bi bi-telephone text-gold me-1"></i>رقم الهاتف <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.phone }}
+                                    {% if form.phone.errors %}
+                                        <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="id_gender" class="form-label fw-semibold">
+                                        <i class="bi bi-gender-ambiguous text-gold me-1"></i>الجنس <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.gender }}
+                                    {% if form.gender.errors %}
+                                        <div class="text-danger small mt-1">{{ form.gender.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="id_role" class="form-label fw-semibold">
+                                        <i class="bi bi-mortarboard text-gold me-1"></i>نوع الحساب <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.role }}
+                                    {% if form.role.errors %}
+                                        <div class="text-danger small mt-1">{{ form.role.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="id_password" class="form-label fw-semibold">كلمة المرور <span class="text-danger">*</span></label>
-                                {{ form.password }}
-                                {% if form.password.errors %}
-                                    <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
-                                {% endif %}
+                        <!-- 3. Password Security -->
+                        <div class="mb-4">
+                            <span class="text-xs text-uppercase fw-bold text-muted d-block mb-3 border-bottom pb-1">
+                                <i class="bi bi-key text-gold me-1"></i> كلمة المرور والأمان
+                            </span>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="id_password" class="form-label fw-semibold">
+                                        <i class="bi bi-lock text-gold me-1"></i>كلمة المرور <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.password }}
+                                    {% if form.password.errors %}
+                                        <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_password_confirm" class="form-label fw-semibold">
+                                        <i class="bi bi-lock-fill text-gold me-1"></i>تأكيد كلمة المرور <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.password_confirm }}
+                                    {% if form.password_confirm.errors %}
+                                        <div class="text-danger small mt-1">{{ form.password_confirm.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-4">
-                                <label for="id_password_confirm" class="form-label fw-semibold">تأكيد كلمة المرور <span class="text-danger">*</span></label>
-                                {{ form.password_confirm }}
-                                {% if form.password_confirm.errors %}
-                                    <div class="text-danger small mt-1">{{ form.password_confirm.errors.0 }}</div>
-                                {% endif %}
+                            <div class="form-text text-muted small mt-2">
+                                <i class="bi bi-shield-check text-success me-1"></i>
+                                الحد الأدنى 6 خانات، ويشترط ألا تتطابق أو تحتوي على رقم الهاتف لأسباب أمنية.
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-gold-custom w-100 py-2 fs-6">
-                            <i class="bi bi-check2-circle me-2"></i> إتمام التسجيل
-                        </button>
+                        <div class="pt-2">
+                            <button type="submit" class="btn btn-gold-custom w-100 py-2 fs-6 shadow-sm">
+                                <i class="bi bi-check2-circle me-2"></i> إتمام إنشاء الحساب
+                            </button>
+                        </div>
                     </form>
 
                     <div class="text-center mt-4 pt-3 border-top">
-                        <p class="text-muted small mb-0">لديك حساب بالفعل؟ <a href="{% url 'accounts:login' %}" class="fw-bold text-primary-dark text-decoration-none">تسجيل الدخول</a></p>
+                        <p class="text-muted small mb-0">
+                            لديك حساب مسجل بالفعل؟ 
+                            <a href="{% url 'accounts:login' %}" class="fw-bold text-primary-dark text-decoration-none">تسجيل الدخول الآن</a>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -107,4 +158,3 @@
     </div>
 </div>
 {% endblock %}
-

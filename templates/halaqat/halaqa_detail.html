@@ -4,65 +4,166 @@
 
 {% block content %}
 <div class="container py-4">
-    <!-- Header Card -->
-    <div class="card card-custom mb-4">
-        <div class="card-body p-4">
-            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <!-- Archived / Deleted Status Banners -->
+    {% if halaqa.is_deleted %}
+        <div class="alert alert-danger d-flex align-items-center justify-content-between p-3 rounded-3 mb-4 shadow-sm border-0">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-trash3-fill fs-4 text-danger"></i>
                 <div>
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                        <h3 class="fw-bold text-primary-dark mb-0">{{ halaqa.name }}</h3>
-                        <span class="badge {% if halaqa.visibility == 'PUBLIC' %}badge-success-custom{% else %}badge-primary-custom{% endif %}">
-                            {{ halaqa.get_visibility_display }}
-                        </span>
-                        <span class="badge badge-gold">{{ halaqa.get_gender_display }}</span>
+                    <strong class="d-block">هذه الحلقة في سلة المحذوفات</strong>
+                    <span class="small">تم حذف الحلقة في {{ halaqa.deleted_at|date:"Y-m-d H:i" }}. لا يمكن للطلاب الوصول إليها.</span>
+                </div>
+            </div>
+            {% if is_owner or user.is_platform_admin %}
+                <form method="post" action="{% url 'halaqat:restore' halaqa.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-success px-3">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> استعادة الحلقة
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    {% elif halaqa.is_archived %}
+        <div class="alert alert-warning d-flex align-items-center justify-content-between p-3 rounded-3 mb-4 shadow-sm border-0">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-archive-fill fs-4 text-warning"></i>
+                <div>
+                    <strong class="d-block">هذه الحلقة مؤرشفة حالياً</strong>
+                    <span class="small">الحلقة مخفية من التصفح العام وقائمة الحلقات النشطة، وكافة بياناتها محفوظة.</span>
+                </div>
+            </div>
+            {% if is_owner or user.is_platform_admin %}
+                <form method="post" action="{% url 'halaqat:archive' halaqa.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-warning px-3">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> إلغاء الأرشفة
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- Header Card (Redesigned for Fluid Mobile & Desktop Views) -->
+    <div class="card card-custom mb-4 overflow-hidden">
+        <div class="card-halaqa-top-bar {% if halaqa.is_deleted %}bg-danger{% elif halaqa.is_archived %}bg-warning{% endif %}"></div>
+        <div class="card-body p-3 p-md-4">
+            <div class="row align-items-start g-3 mb-3">
+                
+                <!-- Left: Title, Badges & Meta Details -->
+                <div class="col-12 col-lg-8">
+                    <!-- Title and Status Badges -->
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <h3 class="fw-bold text-primary-dark mb-0 fs-4 fs-md-3">{{ halaqa.name }}</h3>
+                        <div class="d-flex gap-1 flex-wrap align-items-center">
+                            <span class="badge {% if halaqa.visibility == 'PUBLIC' %}badge-success-custom{% else %}badge-primary-custom{% endif %}">
+                                {% if halaqa.visibility == 'PUBLIC' %}<i class="bi bi-globe me-1"></i> عامة{% else %}<i class="bi bi-lock-fill me-1"></i> خاصة{% endif %}
+                            </span>
+                            <span class="badge badge-gold">
+                                <i class="bi bi-gender-ambiguous me-1"></i> {{ halaqa.get_gender_display }}
+                            </span>
+                            {% if halaqa.is_archived %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-archive me-1"></i> مؤرشفة</span>
+                            {% endif %}
+                            {% if halaqa.is_deleted %}
+                                <span class="badge bg-danger text-white"><i class="bi bi-trash3 me-1"></i> في المهملات</span>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="text-muted small">
-                        <span><i class="bi bi-person-fill"></i> المشرف / المعلم: <strong>{{ halaqa.owner.display_name }}</strong></span>
-                        <span class="mx-2">•</span>
-                        <span><i class="bi bi-people"></i> {{ members.count }} عضو</span>
-                        <span class="mx-2">•</span>
-                        <span><i class="bi bi-calendar3"></i> أنشئت في {{ halaqa.created_at|date:"Y-m-d" }}</span>
+
+                    <!-- Meta Details Chips (Mobile Responsive) -->
+                    <div class="d-flex flex-wrap align-items-center gap-2 text-muted small mt-2">
+                        <span class="bg-light px-2 py-1 rounded-2 border">
+                            <i class="bi bi-person-fill text-gold me-1"></i> المعلم: <strong class="text-dark">{{ halaqa.owner.display_name }}</strong>
+                        </span>
+                        <span class="bg-light px-2 py-1 rounded-2 border">
+                            <i class="bi bi-people-fill text-gold me-1"></i> {{ members.count }} عضو
+                        </span>
+                        <span class="bg-light px-2 py-1 rounded-2 border">
+                            <i class="bi bi-calendar3 text-gold me-1"></i> أنشئت في {{ halaqa.created_at|date:"Y-m-d" }}
+                        </span>
                     </div>
                 </div>
 
-                <!-- Action Controls -->
-                <div class="d-flex gap-2 flex-wrap">
-                    {% if halaqa.chat_room %}
-                        <a href="{% url 'chat:conversation_detail' halaqa.chat_room.id %}" class="btn btn-outline-custom">
-                            <i class="bi bi-chat-text-fill me-1"></i> محادثة الحلقة
-                        </a>
-                    {% endif %}
-
-                    {% if can_manage %}
-                        <a href="{% url 'halaqat:manage_members' halaqa.id %}" class="btn btn-primary-custom position-relative">
-                            <i class="bi bi-people-fill me-1"></i> إدارة الأعضاء
-                            {% if pending_requests %}
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                    {{ pending_requests.count }}
-                                </span>
-                            {% endif %}
-                        </a>
-                        <a href="{% url 'halaqat:edit' halaqa.id %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-gear-fill me-1"></i> تعديل الحلقة
-                        </a>
-                    {% endif %}
-
-                    {% if not member and user.is_authenticated and not user.is_platform_admin and not is_owner %}
-                        {% if has_pending_request %}
-                            <button class="btn btn-secondary" disabled>
-                                <i class="bi bi-hourglass-split me-1"></i> طلب انضمامك قيد المراجعة
-                            </button>
-                        {% else %}
-                            <a href="{% url 'halaqat:request_join' halaqa.id %}" class="btn btn-gold-custom">
-                                <i class="bi bi-send-plus me-1"></i> طلب انضمام للحلقة
+                <!-- Right / Bottom on Mobile: Action Controls -->
+                <div class="col-12 col-lg-4">
+                    <div class="d-flex flex-wrap gap-2 justify-content-start justify-content-lg-end">
+                        {% if halaqa.chat_room %}
+                            <a href="{% url 'chat:conversation_detail' halaqa.chat_room.id %}" class="btn btn-outline-custom flex-grow-1 flex-md-grow-0" title="محادثة الحلقة الجماعية">
+                                <i class="bi bi-chat-text-fill me-1"></i> محادثة الحلقة
                             </a>
                         {% endif %}
-                    {% endif %}
+
+                        {% if can_manage %}
+                            <a href="{% url 'halaqat:manage_members' halaqa.id %}" class="btn btn-primary-custom position-relative flex-grow-1 flex-md-grow-0">
+                                <i class="bi bi-people-fill me-1"></i> الأعضاء
+                                {% if pending_requests %}
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        {{ pending_requests.count }}
+                                    </span>
+                                {% endif %}
+                            </a>
+                        {% endif %}
+
+                        {% if is_owner or user.is_platform_admin %}
+                            <!-- Teacher Management Dropdown -->
+                            <div class="dropdown flex-grow-1 flex-md-grow-0">
+                                <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-gear-fill me-1"></i> إعدادات
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'halaqat:edit' halaqa.id %}">
+                                            <i class="bi bi-pencil me-2 text-primary"></i> تعديل بيانات ومواعيد الحلقة
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <form method="post" action="{% url 'halaqat:archive' halaqa.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="dropdown-item">
+                                                {% if halaqa.is_archived %}
+                                                    <i class="bi bi-arrow-counterclockwise me-2 text-warning"></i> إلغاء أرشفة الحلقة
+                                                {% else %}
+                                                    <i class="bi bi-archive me-2 text-warning"></i> أرشفة الحلقة
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        {% if not halaqa.is_deleted %}
+                                            <a class="dropdown-item text-danger" href="{% url 'halaqat:delete' halaqa.id %}">
+                                                <i class="bi bi-trash3 me-2"></i> حذف الحلقة
+                                            </a>
+                                        {% else %}
+                                            <form method="post" action="{% url 'halaqat:permanent_delete' halaqa.id %}" onsubmit="return confirm('تحذير: هل أنت متأكد من الحذف النهائي للحلقة؟');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="dropdown-item text-danger">
+                                                    <i class="bi bi-x-circle me-2"></i> حذف نهائي من القاعدة
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </li>
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        {% if not member and user.is_authenticated and not user.is_platform_admin and not is_owner %}
+                            {% if has_pending_request %}
+                                <button class="btn btn-secondary w-100 w-md-auto" disabled>
+                                    <i class="bi bi-hourglass-split me-1"></i> طلب انضمامك قيد المراجعة
+                                </button>
+                            {% else %}
+                                <a href="{% url 'halaqat:request_join' halaqa.id %}" class="btn btn-gold-custom w-100 w-md-auto">
+                                    <i class="bi bi-send-plus me-1"></i> طلب انضمام للحلقة
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
             {% if halaqa.description %}
-                <p class="text-secondary mb-0 border-top pt-3">{{ halaqa.description|linebreaksbr }}</p>
+                <p class="text-secondary small mb-0 border-top pt-3">{{ halaqa.description|linebreaksbr }}</p>
             {% endif %}
         </div>
     </div>

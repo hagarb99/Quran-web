@@ -26,13 +26,6 @@
         </div>
     </div>
 
-    {% if user.is_authenticated and user.role == 'STUDENT' %}
-        <div class="alert alert-info py-2 small mb-4 rounded-3 border-0 shadow-xs">
-            <i class="bi bi-info-circle-fill me-1"></i>
-            يتم عرض الحلقات المطابقة لجنسك (<strong>{{ user.get_gender_display }}</strong>) التزاماً بالضوابط الشرعية المعتمدة.
-        </div>
-    {% endif %}
-
     {% if halaqat %}
         <div class="row g-3">
             {% for h in halaqat %}
@@ -102,6 +95,50 @@
                 </div>
             {% endfor %}
         </div>
+
+        <!-- Pagination Controls -->
+        {% if page_obj.has_other_pages %}
+            <nav class="mt-4 pt-2 d-flex justify-content-center" aria-label="صفحات الحلقات">
+                <ul class="pagination pagination-custom shadow-xs mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}" aria-label="السابق">
+                                <i class="bi bi-chevron-right me-1"></i> السابق
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-right me-1"></i> السابق</span>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}" aria-label="التالي">
+                                التالي <i class="bi bi-chevron-left ms-1"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">التالي <i class="bi bi-chevron-left ms-1"></i></span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+
     {% else %}
         <div class="card card-custom p-5 text-center">
             <i class="bi bi-search empty-state-icon text-muted"></i>

@@ -182,3 +182,70 @@ class HalaqatBusinessRulesTests(TestCase):
         self.assertNotContains(detail_res, f"/halaqat/{self.halaqa_male.id}/students/{self.student_male.id}/progress/")
         self.assertContains(detail_res, f"/halaqat/{self.halaqa_male.id}/students/{student_other.id}/progress/")
 
+    def test_archive_and_restore_halaqa(self):
+        """Rule: Teacher/Owner can archive and unarchive halaqat, and archived halaqat are hidden from public browsing."""
+        self.client.login(username='teacher_m', password='Password123!')
+        
+        # Archive halaqa
+        archive_url = reverse('halaqat:archive', kwargs={'pk': self.halaqa_male.id})
+        res = self.client.post(archive_url, follow=True)
+        self.assertEqual(res.status_code, 200)
+        self.halaqa_male.refresh_from_db()
+        self.assertTrue(self.halaqa_male.is_archived)
+
+        # Must not appear in public browse
+        browse_res = self.client.get(reverse('halaqat:browse_public'))
+        self.assertNotContains(browse_res, self.halaqa_male.name)
+
+        # Must appear in archived tab in my_halaqat
+        my_halaqat_archived = self.client.get(reverse('halaqat:my_halaqat') + '?status=archived')
+        self.assertContains(my_halaqat_archived, self.halaqa_male.name)
+
+        # Unarchive
+        res_unarchive = self.client.post(archive_url, follow=True)
+        self.halaqa_male.refresh_from_db()
+        self.assertFalse(self.halaqa_male.is_archived)
+
+    def test_soft_delete_and_restore_halaqa(self):
+        """Rule: Teacher/Owner can soft-delete halaqat to trash and restore them."""
+        self.client.login(username='teacher_m', password='Password123!')
+        
+        # Soft-delete halaqa
+        delete_url = reverse('halaqat:delete', kwargs={'pk': self.halaqa_male.id})
+        res = self.client.post(delete_url, follow=True)
+        self.assertEqual(res.status_code, 200)
+        self.halaqa_male.refresh_from_db()
+        self.assertTrue(self.halaqa_male.is_deleted)
+        self.assertIsNotNone(self.halaqa_male.deleted_at)
+
+        # Must not appear in active halaqat
+        my_halaqat_active = self.client.get(reverse('halaqat:my_halaqat') + '?status=active')
+        self.assertNotContains(my_halaqat_active, self.halaqa_male.name)
+
+        # Must appear in deleted tab
+        my_halaqat_deleted = self.client.get(reverse('halaqat:my_halaqat') + '?status=deleted')
+        self.assertContains(my_halaqat_deleted, self.halaqa_male.name)
+
+        # Restore
+        restore_url = reverse('halaqat:restore', kwargs={'pk': self.halaqa_male.id})
+        res_restore = self.client.post(restore_url, follow=True)
+        self.halaqa_male.refresh_from_db()
+        self.assertFalse(self.halaqa_male.is_deleted)
+        self.assertIsNone(self.halaqa_male.deleted_at)
+
+    def test_browse_public_pagination(self):
+        """Verify pagination works when multiple public halaqat exist."""
+        # Create 7 more public male halaqat
+        for i in range(7):
+            Halaqa.objects.create(
+                name=f'حلقة تجريبية {i+1}',
+                gender=Halaqa.GENDER_MALE,
+                visibility=Halaqa.VISIBILITY_PUBLIC,
+                owner=self.teacher_male
+            )
+        self.client.login(username='student_m', password='Password123!')
+        res = self.client.get(reverse('halaqat:browse_public'))
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(res.context['page_obj'].has_other_pages())
+        self.assertEqual(len(res.context['halaqat']), 6)
+

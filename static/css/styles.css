@@ -931,3 +931,121 @@ body {
     background: rgba(2, 132, 199, 0.1);
     color: #075985;
 }
+
+/* ==========================================================================
+   Professional Bootstrap Admin Dashboard KPI Metric Cards
+   ========================================================================== */
+.admin-stat-card {
+    background: #FFFFFF;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    border-right: 4px solid var(--primary); /* RTL Accent Border */
+    padding: 1.25rem 1.35rem;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+.admin-stat-card.stat-present {
+    border-right-color: #10B981;
+}
+
+.admin-stat-card.stat-absent {
+    border-right-color: #EF4444;
+}
+
+.admin-stat-card.stat-late {
+    border-right-color: #F59E0B;
+}
+
+.admin-stat-card.stat-excused {
+    border-right-color: #0284C7;
+}
+
+.admin-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    transition: transform 0.25s ease;
+}
+
+.admin-stat-card:hover .admin-stat-icon {
+    transform: scale(1.08);
+}
+
+.admin-stat-card.stat-present .admin-stat-icon {
+    background-color: #ECFDF5;
+    color: #059669;
+}
+
+.admin-stat-card.stat-absent .admin-stat-icon {
+    background-color: #FEF2F2;
+    color: #DC2626;
+}
+
+.admin-stat-card.stat-late .admin-stat-icon {
+    background-color: #FFFBEB;
+    color: #D97706;
+}
+
+.admin-stat-card.stat-excused .admin-stat-icon {
+    background-color: #F0F9FF;
+    color: #0284C7;
+}
+
+.admin-stat-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #64748B;
+    margin-bottom: 0.35rem;
+}
+
+.admin-stat-value {
+    font-size: 2.15rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #0F172A;
+    font-family: 'Cairo', sans-serif;
+}
+
+.admin-stat-subtext {
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 0.5rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+}
+
+.admin-stat-card.stat-present .admin-stat-subtext {
+    background-color: #ECFDF5;
+    color: #065F46;
+}
+
+.admin-stat-card.stat-absent .admin-stat-subtext {
+    background-color: #FEF2F2;
+    color: #991B1B;
+}
+
+.admin-stat-card.stat-late .admin-stat-subtext {
+    background-color: #FFFBEB;
+    color: #92400E;
+}
+
+.admin-stat-card.stat-excused .admin-stat-subtext {
+    background-color: #F0F9FF;
+    color: #075985;
+}
