@@ -88,7 +88,7 @@ class UserRegistrationForm(forms.ModelForm):
 class LoginForm(forms.Form):
     login_field = forms.CharField(
         label="اسم المستخدم / البريد / رقم الهاتف",
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'أدخل اسم المستخدم أو البريد أو الهاتف'})
+        widget=forms.TextInput(attrs={'class': 'form-control'})
     )
     password = forms.CharField(
         label="كلمة المرور",

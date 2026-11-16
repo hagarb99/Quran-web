@@ -1,7 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.conf import settings
+from django.urls import reverse_lazy, reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django.db.models import Count, Q
 from .forms import UserRegistrationForm, LoginForm, UserProfileForm
 from .models import User
@@ -128,3 +134,33 @@ def my_progress_view(request):
         'ratings_counts': ratings_counts,
     }
     return render(request, 'accounts/my_progress.html', context)
+
+
+class CustomPasswordResetView(auth_views.PasswordResetView):
+    template_name = 'accounts/password_reset.html'
+    email_template_name = 'accounts/password_reset_email.html'
+    subject_template_name = 'accounts/password_reset_subject.txt'
+    success_url = reverse_lazy('accounts:password_reset_done')
+
+    def form_valid(self, form):
+        email = form.cleaned_data.get('email')
+        if settings.DEBUG:
+            for user in form.get_users(email):
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                token = default_token_generator.make_token(user)
+                reset_url = self.request.build_absolute_uri(
+                    reverse('accounts:password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
+                )
+                self.request.session['debug_reset_url'] = reset_url
+                break
+        return super().form_valid(form)
+
+
+class CustomPasswordResetDoneView(auth_views.PasswordResetDoneView):
+    template_name = 'accounts/password_reset_done.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if settings.DEBUG:
+            context['debug_reset_url'] = self.request.session.pop('debug_reset_url', None)
+        return context
