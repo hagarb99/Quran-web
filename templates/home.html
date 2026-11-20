@@ -1,0 +1,827 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}منصة حلقات - إدارة وتحفيظ القرآن الكريم أونلاين{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Hero Section */
+    .home-hero-v2 {
+        background: linear-gradient(135deg, #064E3B 0%, #03382A 100%);
+        border-radius: var(--radius-lg, 16px);
+        padding: 3.5rem 2rem;
+        color: #FFFFFF;
+        box-shadow: 0 12px 36px rgba(6, 78, 59, 0.22);
+        border: 1px solid rgba(217, 119, 6, 0.25);
+        position: relative;
+        overflow: hidden;
+    }
+    @media (max-width: 768px) {
+        .home-hero-v2 {
+            padding: 2.25rem 1.25rem;
+            text-align: center;
+        }
+    }
+    .hero-badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.12);
+        color: #FBBF24;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        backdrop-filter: blur(8px);
+    }
+    .hero-pill-tag {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: rgba(255, 255, 255, 0.9);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+    }
+    
+    /* Interactive Hero Mockup Card */
+    .hero-mockup-card {
+        background: #FFFFFF;
+        color: #1F2937;
+        border-radius: var(--radius-md, 14px);
+        padding: 1.5rem;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+    }
+    .live-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        background-color: #10B981;
+        border-radius: 50%;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.25);
+        animation: pulseLive 1.8s infinite;
+    }
+    @keyframes pulseLive {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+        70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Professional Target Audience Cards */
+    .audience-card-pro {
+        background: #FFFFFF;
+        border-radius: 20px;
+        padding: 2.25rem 2rem;
+        border: 1px solid #E5E7EB;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+    }
+    .audience-card-pro::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        height: 5px;
+        transition: height 0.25s ease;
+    }
+    .audience-card-student::before {
+        background: linear-gradient(90deg, #0284C7 0%, #38BDF8 100%);
+    }
+    .audience-card-teacher::before {
+        background: linear-gradient(90deg, #064E3B 0%, #D97706 100%);
+    }
+    .audience-card-pro:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px -10px rgba(6, 78, 59, 0.12);
+    }
+    .audience-card-student:hover {
+        border-color: rgba(2, 132, 199, 0.35);
+    }
+    .audience-card-teacher:hover {
+        border-color: rgba(6, 78, 59, 0.35);
+    }
+    
+    .persona-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        margin-bottom: 1.25rem;
+    }
+    .persona-badge-student {
+        background: #F0F9FF;
+        color: #0369A1;
+        border: 1px solid #BAE6FD;
+    }
+    .persona-badge-teacher {
+        background: #ECFDF5;
+        color: #047857;
+        border: 1px solid #A7F3D0;
+    }
+    
+    .audience-avatar-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        margin-bottom: 1.25rem;
+        transition: transform 0.25s ease;
+    }
+    .audience-card-pro:hover .audience-avatar-icon {
+        transform: scale(1.08);
+    }
+    .avatar-icon-student {
+        background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%);
+        color: #0284C7;
+        box-shadow: 0 6px 16px rgba(2, 132, 199, 0.15);
+    }
+    .avatar-icon-teacher {
+        background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+        color: #064E3B;
+        box-shadow: 0 6px 16px rgba(6, 78, 59, 0.15);
+    }
+
+    /* Audience Feature Item Micro-Cards */
+    .audience-features-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+        margin-bottom: 1.75rem;
+    }
+    .audience-feature-row {
+        background: #F9FAFB;
+        border: 1px solid #F3F4F6;
+        border-radius: 12px;
+        padding: 0.85rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.2s ease;
+    }
+    .audience-feature-row:hover {
+        background: #FFFFFF;
+        border-color: #E5E7EB;
+        transform: translateX(-3px);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+    }
+    .feature-icon-box {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+    }
+    .feature-icon-student {
+        background: #E0F2FE;
+        color: #0284C7;
+    }
+    .feature-icon-teacher {
+        background: #ECFDF5;
+        color: #059669;
+    }
+    .feature-row-text {
+        font-size: 0.9rem;
+        color: #374151;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+    .feature-row-text strong {
+        color: #111827;
+        font-weight: 700;
+    }
+
+    /* Persona Buttons */
+    .btn-student-pro {
+        background: #0284C7;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
+    .btn-student-pro:hover {
+        background: #0369A1;
+        color: #FFFFFF;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
+    }
+    .btn-teacher-pro {
+        background: #064E3B;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(6, 78, 59, 0.25);
+    }
+    .btn-teacher-pro:hover {
+        background: #04382A;
+        color: #FFFFFF;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(6, 78, 59, 0.35);
+    }
+    @media (max-width: 768px) {
+        .audience-card-pro {
+            padding: 1.5rem 1.25rem;
+        }
+        .audience-feature-row {
+            padding: 0.75rem 0.85rem;
+            gap: 10px;
+        }
+        .feature-row-text {
+            font-size: 0.85rem;
+        }
+    }
+
+    /* Modern Feature Cards */
+    .feature-card-v2 {
+        background: #FFFFFF;
+        border-radius: var(--radius-md, 14px);
+        padding: 1.75rem 1.5rem;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+        height: 100%;
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+    .feature-card-v2:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 24px rgba(6, 78, 59, 0.08);
+        border-color: rgba(217, 119, 6, 0.3);
+    }
+    .feature-icon-v2 {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        background: rgba(6, 78, 59, 0.08);
+        color: #064E3B;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Steps */
+    .step-number-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #D97706;
+        color: #FFFFFF;
+        font-weight: 700;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);
+    }
+    @media (max-width: 768px) {
+        .step-number-circle {
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+
+    /* FAQ Accordion Styling */
+    .faq-accordion .accordion-item {
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 10px !important;
+        margin-bottom: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+    .faq-accordion .accordion-button {
+        font-weight: 700;
+        color: #064E3B;
+        background-color: #FFFFFF;
+        padding: 1.1rem 1.25rem;
+        font-size: 1rem;
+    }
+    .faq-accordion .accordion-button:not(.collapsed) {
+        background-color: rgba(6, 78, 59, 0.04);
+        color: #064E3B;
+        box-shadow: none;
+    }
+    .faq-accordion .accordion-body {
+        color: #4B5563;
+        font-size: 0.95rem;
+        line-height: 1.7;
+        background-color: #FFFFFF;
+    }
+
+    /* CTA Bottom Banner */
+    .home-cta-banner {
+        background: linear-gradient(135deg, #064E3B 0%, #04382A 100%);
+        border-radius: var(--radius-lg, 16px);
+        padding: 3rem 1.5rem;
+        color: #FFFFFF;
+        text-align: center;
+        border: 2px solid rgba(217, 119, 6, 0.35);
+        box-shadow: 0 12px 30px rgba(6, 78, 59, 0.18);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-3 py-md-4">
+
+    <!-- 1. Engaging Hero Section (Fluid Desktop & Mobile) -->
+    <section class="home-hero-v2 mb-5">
+        <div class="row align-items-center g-4 g-lg-5">
+            <div class="col-lg-7">
+                <div class="d-flex align-items-center gap-2 mb-3 flex-wrap justify-content-center justify-content-lg-start">
+                    <span class="hero-badge-pill">
+                        <i class="bi bi-star-fill text-warning"></i> بيئة قرآنية تفاعلية حديثة
+                    </span>
+                    <span class="hero-pill-tag"><i class="bi bi-shield-check text-success me-1"></i> خصوصية تامة</span>
+                    <span class="hero-pill-tag"><i class="bi bi-camera-video text-info me-1"></i> Meet مدمج</span>
+                </div>
+
+                <h1 class="display-6 fw-bold text-white mb-3 lh-sm">
+                    تعلّم القرآن وحفظه في <span class="text-warning">حلقات تفاعلية</span> مع أمهر المعلمين
+                </h1>
+
+                <p class="text-white-50 mb-4 fs-6 lh-lg">
+                    منصة متكاملة لإدارة الحلقات القرآنية عن بُعد. تمكّن المعلم من إدارة طلابه وجلساته بدقة، وتمنح الطالب سجلاً إلكترونياً لمتابعة حفظه الجديد ومراجعته وحضوره لحظة بلحظة.
+                </p>
+
+                <!-- Call to Action Buttons -->
+                <div class="d-flex gap-2 gap-md-3 flex-wrap justify-content-center justify-content-lg-start">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'halaqat:my_halaqat' %}" class="btn btn-gold-custom btn-lg px-4 shadow">
+                            <i class="bi bi-collection-play me-2"></i> الانتقال إلى حلقاتي
+                        </a>
+                        <a href="{% url 'halaqat:browse_public' %}" class="btn btn-outline-light btn-lg px-4 fw-semibold">
+                            <i class="bi bi-compass me-2"></i> استكشاف الحلقات
+                        </a>
+                    {% else %}
+                        <a href="{% url 'accounts:register' %}" class="btn btn-gold-custom btn-lg px-4 shadow">
+                            <i class="bi bi-person-plus-fill me-2"></i> ابدأ الآن مجاناً
+                        </a>
+                        <a href="{% url 'halaqat:browse_public' %}" class="btn btn-outline-light btn-lg px-4 fw-semibold">
+                            <i class="bi bi-compass me-2"></i> استكشاف الحلقات المتاحة
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Left Interactive Mockup Card -->
+            <div class="col-lg-5">
+                <div class="hero-mockup-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="live-indicator"></span>
+                            <span class="small fw-bold text-success">جلسة مباشرة الآن</span>
+                        </div>
+                        <span class="badge bg-light text-dark border">
+                            <i class="bi bi-clock-history me-1 text-gold"></i> موعد الجلسة
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-primary-dark mb-1">حلقة الإتقان لتجويد وتثبيت القرآن</h6>
+                        <div class="small text-muted mb-2">
+                            <i class="bi bi-person-badge text-gold me-1"></i> إشراف: <strong>الشيخ المعتمد</strong>
+                        </div>
+                        <div class="p-2 rounded bg-light border small text-dark">
+                            <i class="bi bi-bookmark-check-fill text-gold me-1"></i>
+                            <strong>التكليف القادم:</strong> سورة الكهف (الآيات 1-30) + مراجعة قريبة.
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'halaqat:my_halaqat' %}" class="btn btn-primary-custom btn-sm py-2">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> دخول الحلقة وجدول المتابعة
+                            </a>
+                        {% else %}
+                            <a href="{% url 'accounts:login' %}" class="btn btn-primary-custom btn-sm py-2">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> تسجيل الدخول لحضور الجلسة
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. Who is it for? (صُممت لتلبي احتياجات المعلم والطالب) -->
+    <section class="mb-5">
+        <div class="text-center mb-4 pb-1">
+            <span class="badge rounded-pill bg-light text-primary border px-3 py-2 mb-2 fw-bold">
+                <i class="bi bi-mortarboard-fill text-gold me-1"></i> منظومة تعليمية متكاملة
+            </span>
+            <h2 class="fw-bold text-primary-dark mb-2">
+                صُممت لتلبي احتياجات المعلم والطالب
+            </h2>
+            <p class="text-muted small mb-0">بيئة مرنة وميسرة تخدم طرفي العملية التعليمية بأعلى احترافية</p>
+        </div>
+
+        <div class="row g-4 align-items-stretch">
+            <!-- For Students -->
+            <div class="col-lg-6">
+                <div class="audience-card-pro audience-card-student">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="audience-avatar-icon avatar-icon-student">
+                                <i class="bi bi-backpack4-fill"></i>
+                            </div>
+                            <span class="persona-badge persona-badge-student">
+                                <i class="bi bi-check-circle-fill"></i> مسار الطلاب وحفّاظ القرآن
+                            </span>
+                        </div>
+
+                        <h3 class="h4 fw-bold text-primary-dark mb-2">للطلاب والراغبين في الحفظ</h3>
+                        <p class="text-muted small mb-4 lh-base">
+                            اختر الحلقة المناسبة لوقتك ومستواك، واحصل على متابعة فردية وتصحيح للتلاوة مع شيخك أولاً بأول.
+                        </p>
+
+                        <!-- Micro-Cards List -->
+                        <div class="audience-features-list">
+                            <div class="audience-feature-row">
+                                <div class="feature-icon-box feature-icon-student">
+                                    <i class="bi bi-camera-video-fill"></i>
+                                </div>
+                                <div class="feature-row-text">
+                                    <strong>حضور الجلسات المباشرة:</strong> بنقرة واحدة عبر Google Meet من أي جهاز وبكل سلاسة.
+                                </div>
+                            </div>
+                            <div class="audience-feature-row">
+                                <div class="feature-icon-box feature-icon-student">
+                                    <i class="bi bi-journal-bookmark-fill"></i>
+                                </div>
+                                <div class="feature-row-text">
+                                    <strong>دفتر تسميع رقمي خاص بك:</strong> يوضح درجاتك، أخطاءك، وواجباتك التراكمية لحظة بلحظة.
+                                </div>
+                            </div>
+                            <div class="audience-feature-row">
+                                <div class="feature-icon-box feature-icon-student">
+                                    <i class="bi bi-chat-dots-fill"></i>
+                                </div>
+                                <div class="feature-row-text">
+                                    <strong>قنوات محادثة آمنة:</strong> تواصل فوري ومباشر مع الشيخ والزملاء لمراجعة الأوراد.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <a href="{% url 'halaqat:browse_public' %}" class="btn btn-student-pro w-100 py-2">
+                            استكشف حلقات الطلاب المتاحة <i class="bi bi-arrow-left ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- For Teachers -->
+            <div class="col-lg-6">
+                <div class="audience-card-pro audience-card-teacher">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="audience-avatar-icon avatar-icon-teacher">
+                                <i class="bi bi-person-workspace"></i>
+                            </div>
+                            <span class="persona-badge persona-badge-teacher">
+                                <i class="bi bi-award-fill text-gold"></i> مسار المعلمين والمشايخ
+                            </span>
+                        </div>
+
+                        <h3 class="h4 fw-bold text-primary-dark mb-2">للمعلمين والمشايخ</h3>
+                        <p class="text-muted small mb-4 lh-base">
+                            وفّر وقتك وجهدك الإداري، وركز على إتقان طلابك وتسميعهم مع أدوات تحضير ورصد ذكية.
+                        </p>
+
+                        <!-- Micro-Cards List -->
+                        <div class="audience-features-list">
+                            <div class="audience-feature-row">
+                                <div class="feature-icon-box feature-icon-teacher">
+                                    <i class="bi bi-calendar-check-fill"></i>
+                                </div>
+                                <div class="feature-row-text">
+                                    <strong>إنشاء الحلقات وتحديد مواعيدها:</strong> جدولتها وتكرارها أسبوعياً تلقائياً دون أي عناء.
+                                </div>
+                            </div>
+                            <div class="audience-feature-row">
+                                <div class="feature-icon-box feature-icon-teacher">
+                                    <i class="bi bi-clipboard-data-fill"></i>
+                                </div>
+                                <div class="feature-row-text">
+                                    <strong>رصد الحضور والغياب والتأخر:</strong> إحصائيات وتقارير حضور دقيقة وتلقائية لكل حلقة.
+                                </div>
+                            </div>
+                            <div class="audience-feature-row">
+                                <div class="feature-icon-box feature-icon-teacher">
+                                    <i class="bi bi-ui-checks-grid"></i>
+                                </div>
+                                <div class="feature-row-text">
+                                    <strong>تحديد واجبات الحفظ والمراجعة:</strong> متابعة مستمرة للورد الجديد والماضي القريب والبعيد.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        {% if not user.is_authenticated %}
+                            <a href="{% url 'accounts:register' %}" class="btn btn-teacher-pro w-100 py-2">
+                                ابدأ التدريس وأنشئ حلقتك الآن <i class="bi bi-arrow-left ms-1"></i>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'halaqat:create' %}" class="btn btn-teacher-pro w-100 py-2">
+                                إنشاء حلقة قرآنية جديدة <i class="bi bi-plus-circle ms-1"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Core Features Grid -->
+    <section class="mb-5">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-primary-dark mb-2">
+                <i class="bi bi-stars text-gold me-2"></i> مميزات المنصة الذكية
+            </h3>
+            <p class="text-muted small mb-0">أدوات سهلة وخفيفة مصممة خصيصاً للتعليم القرآني المتقن</p>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card-v2">
+                    <div class="feature-icon-v2">
+                        <i class="bi bi-camera-video-fill"></i>
+                    </div>
+                    <h6 class="fw-bold text-primary-dark mb-2">جلسات Meet مدمجة</h6>
+                    <p class="text-muted small mb-0">
+                        بدء الجلسة بنقرة واحدة مع إرسال إشعار فوري لجميع الطلاب للانضمام دون تعقيد الروابط.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card-v2">
+                    <div class="feature-icon-v2">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                    </div>
+                    <h6 class="fw-bold text-primary-dark mb-2">دفتر التسميع الذكي</h6>
+                    <p class="text-muted small mb-0">
+                        سجل رقمي لتسجيل درجات الحفظ الجديد، المراجعة القريبة والبعيدة، وملاحظات التجويد.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card-v2">
+                    <div class="feature-icon-v2">
+                        <i class="bi bi-bar-chart-line-fill"></i>
+                    </div>
+                    <h6 class="fw-bold text-primary-dark mb-2">إحصائيات وتقارير</h6>
+                    <p class="text-muted small mb-0">
+                        متابعة دقيقة لمعدلات الحضور، أيام الغياب، ومسيرة الإنجاز في لوحات بيانية حديثة.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card-v2">
+                    <div class="feature-icon-v2">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+                    <h6 class="fw-bold text-primary-dark mb-2">عزل كامل وخصوصية</h6>
+                    <p class="text-muted small mb-0">
+                        فصل كامل بين حلقات الرجال وحلقات النساء حفاظاً على الخصوصية والضوابط الشرعية.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. How It Works (3 Steps) -->
+    <section class="mb-5 p-4 p-md-5 bg-light rounded-4 border">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-primary-dark mb-2">كيف تبدأ في 3 خطوات بسيطة؟</h3>
+            <p class="text-muted small mb-0">طريقك لحفظ القرآن وتلاوته يبدأ بهذه الخطوات</p>
+        </div>
+
+        <div class="row g-4 text-center text-md-start">
+            <div class="col-md-4">
+                <div class="step-number-circle">1</div>
+                <h5 class="fw-bold text-primary-dark mb-2">أنشئ حسابك</h5>
+                <p class="text-muted small mb-0">
+                    سجّل كطالب أو كمعلم برقم هاتفك أو بريدك الإلكتروني في دقيقة واحدة وبشكل مباشر.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <div class="step-number-circle">2</div>
+                <h5 class="fw-bold text-primary-dark mb-2">اختر أو أنشئ الحلقة</h5>
+                <p class="text-muted small mb-0">
+                    تصفح الحلقات العامة المناسبة لك وأرسل طلب انضمام، أو أنشئ حلقتك كمعلم وحدد مواعيدها.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <div class="step-number-circle">3</div>
+                <h5 class="fw-bold text-primary-dark mb-2">احضر وتدرّج في الحفظ</h5>
+                <p class="text-muted small mb-0">
+                    ادخل الجلسة المباشرة، سمّع لشيخك، وتابع واجباتك وسجلك القرآني أولاً بأول.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Featured Halaqat Preview -->
+    <section class="mb-5" id="featured-halaqat">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h3 class="fw-bold text-primary-dark mb-1">
+                    <i class="bi bi-collection-play text-gold me-2"></i> استكشاف نماذج من الحلقات
+                </h3>
+                <p class="text-muted small mb-0">حلقات قرآنية عامة مفتوحة للالتحاق حالياً</p>
+            </div>
+            <a href="{% url 'halaqat:browse_public' %}" class="btn btn-outline-custom btn-sm">
+                تصفح كل الحلقات <i class="bi bi-arrow-left ms-1"></i>
+            </a>
+        </div>
+
+        {% if featured_halaqat %}
+            <div class="row g-3">
+                {% for h in featured_halaqat %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card card-custom h-100 d-flex flex-column shadow-sm">
+                            <div class="card-halaqa-top-bar"></div>
+                            <div class="card-body p-4 d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge badge-primary-custom">
+                                        <i class="bi bi-gender-ambiguous me-1"></i> {{ h.get_gender_display }}
+                                    </span>
+                                    <span class="badge badge-gold">
+                                        <i class="bi bi-person-fill me-1"></i> الشيخ: {{ h.owner.display_name }}
+                                    </span>
+                                </div>
+
+                                <h5 class="card-title fw-bold text-primary-dark mb-2">
+                                    {{ h.name }}
+                                </h5>
+
+                                <p class="card-text text-muted small flex-grow-1 mb-3">
+                                    {{ h.description|truncatewords:16|default:"حلقة قرآنية مباركة لتعليم الحفظ والتلاوة والتجويد." }}
+                                </p>
+
+                                {% if h.schedules.all %}
+                                    <div class="mb-3 small bg-light p-2 rounded-2">
+                                        <div class="fw-semibold text-muted mb-1"><i class="bi bi-clock-fill text-gold me-1"></i> المواعيد:</div>
+                                        <ul class="list-unstyled mb-0 text-muted ps-1">
+                                            {% for sc in h.schedules.all|slice:":2" %}
+                                                <li>• {{ sc.get_day_of_week_display }}: {{ sc.start_time|time:"H:i" }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+
+                                <div class="mt-auto pt-2 border-top">
+                                    {% if user.is_authenticated %}
+                                        {% if h.id in user_memberships %}
+                                            <a href="{% url 'halaqat:detail' h.id %}" class="btn btn-outline-success w-100 btn-sm">
+                                                <i class="bi bi-check-circle me-1"></i> أنت عضو بالحلقة
+                                            </a>
+                                        {% elif h.id in user_pending_requests %}
+                                            <button class="btn btn-secondary w-100 btn-sm" disabled>
+                                                <i class="bi bi-hourglass-split me-1"></i> قيد مراجعة المعلم
+                                            </button>
+                                        {% else %}
+                                            <a href="{% url 'halaqat:request_join' h.id %}" class="btn btn-primary-custom w-100 btn-sm">
+                                                <i class="bi bi-person-plus me-1"></i> طلب الانضمام للحلقة
+                                            </a>
+                                        {% endif %}
+                                    {% else %}
+                                        <a href="{% url 'accounts:login' %}?next={% url 'halaqat:detail' h.id %}" class="btn btn-primary-custom w-100 btn-sm">
+                                            <i class="bi bi-box-arrow-in-right me-1"></i> تسجيل الدخول للانضمام
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-4 bg-light rounded-3">
+                <p class="text-muted mb-0">لا توجد حلقات عامة معروضة حالياً.</p>
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- 6. FAQ Section (الأسئلة الأكثر شيوعاً) -->
+    <section class="mb-5">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-primary-dark mb-2">
+                <i class="bi bi-question-circle text-gold me-2"></i> الأسئلة الشائعة
+            </h3>
+            <p class="text-muted small mb-0">إجابات سريعة على أهم الاستفسارات حول المنصة</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="accordion faq-accordion" id="homeFaq">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faqHeading1">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse1" aria-expanded="true" aria-controls="faqCollapse1">
+                                كيف يتم حضور الجلسات القرآنية؟
+                            </button>
+                        </h2>
+                        <div id="faqCollapse1" class="accordion-collapse collapse show" aria-labelledby="faqHeading1" data-bs-parent="#homeFaq">
+                            <div class="accordion-body">
+                                يتم الحضور بسهولة تامة عبر خدمة Google Meet المدمجة. يحدد المعلم موعد الجلسة، وبمجرد بدئها يصل إشعار مباشر لجميع الطلاب للانضمام للغرفة بضغطة زر واحدة دون الحاجة لتطبيقات إضافية معقدة.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faqHeading2">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse2" aria-expanded="false" aria-controls="faqCollapse2">
+                                هل توجد حلقات مخصصة للنساء؟
+                            </button>
+                        </h2>
+                        <div id="faqCollapse2" class="accordion-collapse collapse" aria-labelledby="faqHeading2" data-bs-parent="#homeFaq">
+                            <div class="accordion-body">
+                                نعم، تحرص المنصة على الالتزام التام بالضوابط الشرعية؛ حيث يتم الفصل الكامل بين حلقات الرجال وحلقات النساء، ولا يمكن للطالب الالتحاق إلا بالحلقات المتوافقة مع جنسه المسجل.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faqHeading3">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse3" aria-expanded="false" aria-controls="faqCollapse3">
+                                ما هو دفتر التسميع الذكي؟
+                            </button>
+                        </h2>
+                        <div id="faqCollapse3" class="accordion-collapse collapse" aria-labelledby="faqHeading3" data-bs-parent="#homeFaq">
+                            <div class="accordion-body">
+                                هو سجل رقمي متطور يتيح للشيخ رصد إنجاز الطالب في كل جلسة (حفظ جديد، مراجعة قريبة، مراجعة بعيدة) مع وضع التقييم والملاحظات وتحديد تكليف الجلسة القادمة، ليبقى الطالب دائماً على علم بما هو مطلوب منه.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faqHeading4">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse4" aria-expanded="false" aria-controls="faqCollapse4">
+                                هل تعمل المنصة على الهواتف الذكية؟
+                            </button>
+                        </h2>
+                        <div id="faqCollapse4" class="accordion-collapse collapse" aria-labelledby="faqHeading4" data-bs-parent="#homeFaq">
+                            <div class="accordion-body">
+                                نعم بالتأكيد! المنصة مصممة بتجاوب كامل وخفيف مع جميع شاشات الهواتف والأجهزة اللوحية وأجهزة الحاسوب لتتمكن من متابعة حلقتك وتسميعك أينما كنت.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. Call To Action Banner -->
+    <section class="home-cta-banner">
+        <i class="bi bi-quote text-warning fs-1 mb-2 d-block"></i>
+        <h3 class="fw-bold mb-3">
+            قَالَ رَسُولُ اللَّهِ ﷺ: «خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ»
+        </h3>
+        <p class="text-white-50 mb-4 mx-auto" style="max-width: 600px;">
+            ابدأ رحلتك المباركة اليوم في حفظ كتاب الله وتلاوته مع نخبة من المعلمين المتقنين في بيئة تفاعلية مميزة.
+        </p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            {% if not user.is_authenticated %}
+                <a href="{% url 'accounts:register' %}" class="btn btn-gold-custom btn-lg px-4 shadow">
+                    <i class="bi bi-person-plus-fill me-1"></i> انضم إلينا وابدأ الآن
+                </a>
+                <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-lg px-4">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> تسجيل الدخول
+                </a>
+            {% else %}
+                <a href="{% url 'halaqat:my_halaqat' %}" class="btn btn-gold-custom btn-lg px-4 shadow">
+                    <i class="bi bi-collection-play-fill me-1"></i> الانتقال إلى حلقاتي القرآنية
+                </a>
+            {% endif %}
+        </div>
+    </section>
+
+</div>
+{% endblock %}

@@ -15,6 +15,51 @@ from subscriptions.services import assign_student_to_teacher, has_active_access
 from subscriptions.models import StudentSubscriptionProfile
 
 
+def home_view(request):
+    """
+    Public Home / Landing Page:
+    Showcases the platform, live statistics, core features,
+    and featured public halaqat.
+    Accessible to everyone without requiring login.
+    """
+    from recitations.models import Recitation
+    from halaqa_sessions.models import Session
+
+    total_halaqat = Halaqa.objects.filter(is_deleted=False, is_archived=False).count()
+    total_teachers = User.objects.filter(role=User.ROLE_TEACHER, is_active=True).count()
+    total_students = User.objects.filter(role=User.ROLE_STUDENT, is_active=True).count()
+    total_recitations = Recitation.objects.count()
+    total_sessions = Session.objects.filter(status=Session.STATUS_COMPLETED).count()
+
+    featured_halaqat = Halaqa.objects.filter(
+        is_deleted=False,
+        is_archived=False,
+        visibility=Halaqa.VISIBILITY_PUBLIC
+    ).select_related('owner').prefetch_related('schedules').order_by('-created_at')[:3]
+
+    user_memberships = set()
+    user_pending_requests = set()
+    if request.user.is_authenticated:
+        user_memberships = set(
+            HalaqaMember.objects.filter(user=request.user).values_list('halaqa_id', flat=True)
+        )
+        user_pending_requests = set(
+            JoinRequest.objects.filter(user=request.user, status=JoinRequest.STATUS_PENDING).values_list('halaqa_id', flat=True)
+        )
+
+    context = {
+        'total_halaqat': total_halaqat,
+        'total_teachers': total_teachers,
+        'total_students': total_students,
+        'total_recitations': total_recitations,
+        'total_sessions': total_sessions,
+        'featured_halaqat': featured_halaqat,
+        'user_memberships': user_memberships,
+        'user_pending_requests': user_pending_requests,
+    }
+    return render(request, 'home.html', context)
+
+
 @login_required
 def my_halaqat_view(request):
     """

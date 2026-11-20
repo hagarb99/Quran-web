@@ -87,7 +87,6 @@ def login_view(request):
             user = authenticate(request, username=login_field, password=password)
             if user is not None:
                 login(request, user)
-                messages.success(request, f"مرحباً بك مجدداً، {user.display_name}!")
                 next_url = request.GET.get('next')
                 if next_url:
                     return redirect(next_url)
@@ -103,7 +102,6 @@ def login_view(request):
 def logout_view(request):
     if request.method == 'POST':
         logout(request)
-        messages.info(request, "تم تسجيل خروجك بنجاح.")
         return redirect('accounts:login')
     return redirect('halaqat:my_halaqat')
 

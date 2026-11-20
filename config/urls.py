@@ -4,16 +4,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
 from django.views.static import serve
-
-
-def root_redirect(request):
-    if request.user.is_authenticated:
-        return redirect('halaqat:my_halaqat')
-    return redirect('accounts:login')
+from halaqat import views as halaqat_views
 
 
 urlpatterns = [
-    path('', root_redirect, name='root'),
+    path('', halaqat_views.home_view, name='home'),
+    path('home/', halaqat_views.home_view, name='root'),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('halaqat/', include('halaqat.urls')),

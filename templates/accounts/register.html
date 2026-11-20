@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}إنشاء حساب جديد - منصة حلقات{% endblock %}
 
@@ -9,10 +10,10 @@
             <div class="card card-custom shadow-sm border-0">
                 <div class="card-halaqa-top-bar gold"></div>
                 
-                <!-- Header (Centered column layout - Title on top, Subtitle strictly below) -->
+                <!-- Header with Transparent Logo Icon (No text, as requested) -->
                 <div class="text-center pt-4 pb-3 px-4">
-                    <div class="avatar-circle mx-auto mb-3" style="width: 60px; height: 60px; background-color: var(--gold-light);">
-                        <i class="bi bi-person-plus text-gold fs-3"></i>
+                    <div class="mb-3">
+                        <img src="{% static 'images/logo-icon.png' %}" alt="شعار منصة حلقات" style="height: 75px; width: auto; object-fit: contain;">
                     </div>
                     <h3 class="fw-bold mb-2 text-primary-dark">إنشاء حساب جديد</h3>
                     <p class="text-muted small mb-0">انضم إلى مجتمع حلقات القرآن الكريم طالباً أو معلماً</p>

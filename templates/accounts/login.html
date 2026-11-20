@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}تسجيل الدخول - منصة حلقات{% endblock %}
 
@@ -10,10 +11,10 @@
                 <div class="card-halaqa-top-bar"></div>
                 <div class="card-body p-4 p-md-5">
                     
-                    <!-- Header -->
+                    <!-- Header with Transparent Logo Icon (No text, as requested) -->
                     <div class="text-center mb-4">
-                        <div class="avatar-circle mx-auto mb-3" style="width: 60px; height: 60px; background: var(--primary-light);">
-                            <i class="bi bi-box-arrow-in-right text-primary fs-3"></i>
+                        <div class="mb-3">
+                            <img src="{% static 'images/logo-icon.png' %}" alt="شعار منصة حلقات" style="height: 75px; width: auto; object-fit: contain;">
                         </div>
                         <h3 class="fw-bold text-primary-dark mb-1">تسجيل الدخول</h3>
                         <p class="text-muted small mb-0">أهلاً بك مجدداً في منصة حلقات لتعليم القرآن</p>
